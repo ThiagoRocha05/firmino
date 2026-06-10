@@ -8,8 +8,6 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <style>
-
-    /* ─── RESET ─────────────────────────────────────── */
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
@@ -19,490 +17,181 @@
       --verde2:  #16a34a;
       --amarelo: #fbbf24;
       --branco:  #f9fafb;
-      --cinza1:  #1f2d22;
-      --cinza2:  #2d3f30;
-      --cinza3:  #3d5540;
+      --c1:      #1f2d22;
+      --c2:      #2d3f30;
+      --c3:      #3d5540;
       --text:    #e8f5ea;
       --text2:   #9ab89e;
       --erro:    #f87171;
-      --sucesso: #4ade80;
       --r:       10px;
       --dur:     .2s;
     }
 
-    html, body {
-      min-height: 100%;
-      font-family: 'Inter', sans-serif;
-      background-color: var(--campo);
-      color: var(--text);
-    }
+    html, body { min-height: 100%; font-family: 'Inter', sans-serif; background: var(--campo); color: var(--text); }
 
-    /* ─── CAMPO — textura de linhas de gramado ───────── */
     body::before {
-      content: '';
-      position: fixed;
-      inset: 0;
+      content: ''; position: fixed; inset: 0; pointer-events: none; z-index: 0;
       background-image:
-        repeating-linear-gradient(
-          0deg,
-          transparent,
-          transparent 58px,
-          rgba(255,255,255,0.018) 58px,
-          rgba(255,255,255,0.018) 60px
-        ),
-        repeating-linear-gradient(
-          90deg,
-          transparent,
-          transparent 58px,
-          rgba(255,255,255,0.012) 58px,
-          rgba(255,255,255,0.012) 60px
-        );
-      pointer-events: none;
-      z-index: 0;
+        repeating-linear-gradient(0deg, transparent, transparent 58px, rgba(255,255,255,.018) 58px, rgba(255,255,255,.018) 60px),
+        repeating-linear-gradient(90deg, transparent, transparent 58px, rgba(255,255,255,.012) 58px, rgba(255,255,255,.012) 60px);
     }
-
-    /* Círculo central decorativo */
     body::after {
-      content: '';
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      width: 520px;
-      height: 520px;
-      border-radius: 50%;
-      border: 1px solid rgba(255,255,255,0.04);
-      pointer-events: none;
-      z-index: 0;
+      content: ''; position: fixed; top: 50%; left: 50%; transform: translate(-50%,-50%);
+      width: 520px; height: 520px; border-radius: 50%;
+      border: 1px solid rgba(255,255,255,.04); pointer-events: none; z-index: 0;
     }
 
-    /* ─── WRAPPER ────────────────────────────────────── */
-    #app {
-      position: relative;
-      z-index: 1;
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: 32px 16px 48px;
-    }
+    #app { position: relative; z-index: 1; min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 32px 16px 48px; }
 
-    /* ─── TOPO / LOGO ────────────────────────────────── */
-    .logo-area {
-      text-align: center;
-      margin-bottom: 36px;
-      user-select: none;
-    }
+    /* ── LOGO ── */
+    .logo-area { text-align: center; margin-bottom: 32px; user-select: none; }
+    .logo-bola { font-size: 40px; margin-bottom: 8px; filter: drop-shadow(0 0 24px rgba(74,222,128,.35)); }
+    .logo-title { font-family: 'Bebas Neue', sans-serif; font-size: clamp(36px,9vw,66px); letter-spacing: 2px; line-height: .95; color: var(--branco); }
+    .logo-title span { color: var(--verde); display: block; }
+    .logo-sub { font-size: 12px; font-weight: 500; letter-spacing: 3px; text-transform: uppercase; color: var(--text2); margin-top: 10px; }
+    .pill { display: inline-flex; align-items: center; gap: 6px; background: rgba(74,222,128,.12); border: 1px solid rgba(74,222,128,.25); border-radius: 99px; padding: 4px 12px; font-size: 11px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; color: var(--verde); margin-top: 12px; }
+    .pill-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--verde); animation: pulso 2s ease infinite; }
+    @keyframes pulso { 0%,100%{opacity:1} 50%{opacity:.3} }
 
-    .logo-bola {
-      font-size: 40px;
-      line-height: 1;
-      margin-bottom: 10px;
-      filter: drop-shadow(0 0 24px rgba(74,222,128,.35));
-    }
-
-    .logo-title {
-      font-family: 'Bebas Neue', sans-serif;
-      font-size: clamp(38px, 9vw, 68px);
-      letter-spacing: 2px;
-      line-height: .95;
-      color: var(--branco);
-    }
-
-    .logo-title span {
-      color: var(--verde);
-      display: block;
-    }
-
-    .logo-sub {
-      font-size: 12px;
-      font-weight: 500;
-      letter-spacing: 3px;
-      text-transform: uppercase;
-      color: var(--text2);
-      margin-top: 10px;
-    }
-
-    /* ─── PILL DE STATUS ─────────────────────────────── */
-    .pill {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      background: rgba(74,222,128,.12);
-      border: 1px solid rgba(74,222,128,.25);
-      border-radius: 99px;
-      padding: 4px 12px;
-      font-size: 11px;
-      font-weight: 600;
-      letter-spacing: 1px;
-      text-transform: uppercase;
-      color: var(--verde);
-      margin-top: 12px;
-    }
-
-    .pill-dot {
-      width: 6px; height: 6px;
-      border-radius: 50%;
-      background: var(--verde);
-      animation: pulse 2s ease infinite;
-    }
-
-    @keyframes pulse {
-      0%, 100% { opacity: 1; }
-      50%       { opacity: .3; }
-    }
-
-    /* ─── TELAS ──────────────────────────────────────── */
-    .screen {
-      display: none;
-      width: 100%;
-      max-width: 420px;
-      animation: up .22s ease;
-    }
+    /* ── TELAS ── */
+    .screen { display: none; width: 100%; max-width: 440px; animation: up .22s ease; }
     .screen.active { display: block; }
+    @keyframes up { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
 
-    @keyframes up {
-      from { opacity: 0; transform: translateY(12px); }
-      to   { opacity: 1; transform: translateY(0); }
-    }
+    /* ── CARD ── */
+    .card { background: var(--c1); border: 1px solid var(--c2); border-radius: var(--r); padding: 28px; box-shadow: 0 8px 40px rgba(0,0,0,.4); }
+    .card-label { font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--text2); margin-bottom: 20px; }
 
-    /* ─── CARD ───────────────────────────────────────── */
-    .card {
-      background: var(--cinza1);
-      border: 1px solid var(--cinza2);
-      border-radius: var(--r);
-      padding: 28px;
-      box-shadow: 0 8px 40px rgba(0,0,0,.4);
-    }
+    /* ── BOTÕES HOME ── */
+    .home-btns { display: flex; flex-direction: column; gap: 12px; }
+    .tagline { font-size: 14px; color: var(--text2); text-align: center; line-height: 1.65; margin-bottom: 24px; }
+    .features { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-bottom: 28px; }
+    .feat { background: var(--c1); border: 1px solid var(--c2); border-radius: 99px; padding: 5px 12px; font-size: 12px; font-weight: 600; color: var(--text2); }
 
-    .card-label {
-      font-size: 11px;
-      font-weight: 700;
-      letter-spacing: 2px;
-      text-transform: uppercase;
-      color: var(--text2);
-      margin-bottom: 20px;
-    }
-
-    /* ─── BOTÕES PRINCIPAIS (home) ───────────────────── */
-    .home-btns {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
-
-    .btn-main {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      width: 100%;
-      padding: 18px 22px;
-      border-radius: var(--r);
-      border: none;
-      cursor: pointer;
-      font-family: 'Inter', sans-serif;
-      font-weight: 700;
-      font-size: 15px;
-      transition: all var(--dur);
-      text-align: left;
-    }
-
+    .btn-main { display: flex; align-items: center; justify-content: space-between; width: 100%; padding: 18px 22px; border-radius: var(--r); border: none; cursor: pointer; font-family: 'Inter', sans-serif; font-weight: 700; font-size: 15px; transition: all var(--dur); }
     .btn-main .arr { font-size: 18px; transition: transform var(--dur); }
     .btn-main:hover .arr { transform: translateX(4px); }
-
-    .btn-criar {
-      background: var(--verde);
-      color: #0b1f10;
-    }
+    .btn-criar  { background: var(--verde); color: #0b1f10; }
     .btn-criar:hover { background: #6ee79a; }
+    .btn-entrar { background: var(--c2); color: var(--text); border: 1px solid var(--c3); }
+    .btn-entrar:hover { background: var(--c3); }
 
-    .btn-entrar {
-      background: var(--cinza2);
-      color: var(--text);
-      border: 1px solid var(--cinza3);
-    }
-    .btn-entrar:hover { background: var(--cinza3); }
-
-    /* ─── BOTÃO AÇÃO (forms) ─────────────────────────── */
-    .btn-acao {
-      display: block;
-      width: 100%;
-      padding: 15px;
-      border: none;
-      border-radius: var(--r);
-      background: var(--verde);
-      color: #0b1f10;
-      font-family: 'Inter', sans-serif;
-      font-weight: 700;
-      font-size: 15px;
-      cursor: pointer;
-      transition: background var(--dur);
-      letter-spacing: .3px;
-    }
+    /* ── BOTÕES AÇÃO ── */
+    .btn-acao { display: block; width: 100%; padding: 15px; border: none; border-radius: var(--r); background: var(--verde); color: #0b1f10; font-family: 'Inter', sans-serif; font-weight: 700; font-size: 15px; cursor: pointer; transition: background var(--dur); }
     .btn-acao:hover:not(:disabled) { background: #6ee79a; }
     .btn-acao:disabled { opacity: .4; cursor: not-allowed; }
-
-    .btn-ghost {
-      display: block;
-      width: 100%;
-      padding: 12px;
-      border: 1px solid var(--cinza3);
-      border-radius: var(--r);
-      background: transparent;
-      color: var(--text2);
-      font-family: 'Inter', sans-serif;
-      font-size: 13px;
-      font-weight: 500;
-      cursor: pointer;
-      transition: all var(--dur);
-      margin-top: 8px;
-    }
+    .btn-ghost { display: block; width: 100%; padding: 12px; border: 1px solid var(--c3); border-radius: var(--r); background: transparent; color: var(--text2); font-family: 'Inter', sans-serif; font-size: 13px; font-weight: 500; cursor: pointer; transition: all var(--dur); margin-top: 8px; }
     .btn-ghost:hover { color: var(--text); border-color: var(--text2); }
 
-    /* ─── INPUTS ─────────────────────────────────────── */
+    /* ── INPUTS ── */
     .field { margin-bottom: 16px; }
+    .field label { display: block; font-size: 12px; font-weight: 600; letter-spacing: .5px; color: var(--text2); margin-bottom: 7px; }
+    .field input, .field select { display: block; width: 100%; background: var(--campo2); border: 1.5px solid var(--c2); border-radius: 8px; color: var(--text); font-family: 'Inter', sans-serif; font-size: 15px; font-weight: 500; padding: 12px 14px; outline: none; transition: border-color var(--dur), box-shadow var(--dur); }
+    .field input:focus, .field select:focus { border-color: var(--verde2); box-shadow: 0 0 0 3px rgba(74,222,128,.15); }
+    .field input::placeholder { color: var(--c3); }
+    .field input.code-input { font-size: 24px; font-weight: 700; letter-spacing: 8px; text-transform: uppercase; text-align: center; }
 
-    .field label {
-      display: block;
-      font-size: 12px;
-      font-weight: 600;
-      letter-spacing: .5px;
-      color: var(--text2);
-      margin-bottom: 7px;
+    /* ── COLOR PICKER ROW ── */
+    .color-row { display: flex; gap: 12px; }
+    .color-row .field { flex: 1; }
+    .color-input-wrap { position: relative; }
+    .color-input-wrap input[type=color] { width: 100%; height: 48px; padding: 4px; border-radius: 8px; border: 1.5px solid var(--c2); background: var(--campo2); cursor: pointer; }
+    .color-input-wrap input[type=color]:focus { border-color: var(--verde2); }
+
+    /* ── ESCUDO PREVIEW ── */
+    .escudo-preview-wrap { display: flex; flex-direction: column; align-items: center; margin-bottom: 24px; gap: 12px; }
+    .escudo-lg {
+      width: 100px; height: 110px;
+      clip-path: polygon(50% 0%, 100% 18%, 100% 65%, 50% 100%, 0% 65%, 0% 18%);
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Bebas Neue', sans-serif; font-size: 30px; letter-spacing: 2px;
+      transition: all .3s; background: #2d3f30; color: #9ab89e;
     }
+    .escudo-nome-preview { font-size: 14px; font-weight: 700; color: var(--text2); text-align: center; max-width: 200px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .contraste-badge { font-size: 11px; font-weight: 700; padding: 3px 9px; border-radius: 99px; }
+    .contraste-ok   { background: rgba(74,222,128,.15); color: var(--verde); border: 1px solid rgba(74,222,128,.3); }
+    .contraste-ruim { background: rgba(248,113,113,.15); color: var(--erro); border: 1px solid rgba(248,113,113,.3); }
 
-    .field input,
-    .field select {
-      display: block;
-      width: 100%;
-      background: var(--campo2);
-      border: 1.5px solid var(--cinza2);
-      border-radius: 8px;
-      color: var(--text);
-      font-family: 'Inter', sans-serif;
-      font-size: 15px;
-      font-weight: 500;
-      padding: 12px 14px;
-      outline: none;
-      transition: border-color var(--dur), box-shadow var(--dur);
-    }
+    /* ── MSGS ── */
+    .msg { display: none; font-size: 13px; font-weight: 500; padding: 11px 14px; border-radius: 8px; margin-bottom: 16px; line-height: 1.45; }
+    .msg.show  { display: block; }
+    .msg.erro  { background: rgba(248,113,113,.12); border: 1px solid rgba(248,113,113,.3); color: var(--erro); }
+    .msg.ok    { background: rgba(74,222,128,.1);   border: 1px solid rgba(74,222,128,.3);  color: var(--verde); }
+    .msg.aviso { background: rgba(251,191,36,.1);   border: 1px solid rgba(251,191,36,.3);  color: var(--amarelo); }
 
-    .field input:focus,
-    .field select:focus {
-      border-color: var(--verde2);
-      box-shadow: 0 0 0 3px rgba(74,222,128,.15);
-    }
-
-    .field input::placeholder { color: var(--cinza3); }
-
-    .field input.code-input {
-      font-size: 24px;
-      font-weight: 700;
-      letter-spacing: 8px;
-      text-transform: uppercase;
-      text-align: center;
-    }
-
-    /* ─── DIVISOR ────────────────────────────────────── */
-    .divider {
-      border: none;
-      border-top: 1px solid var(--cinza2);
-      margin: 20px 0;
-    }
-
-    /* ─── MENSAGENS ──────────────────────────────────── */
-    .msg {
-      display: none;
-      font-size: 13px;
-      font-weight: 500;
-      padding: 11px 14px;
-      border-radius: 8px;
-      margin-bottom: 16px;
-      line-height: 1.45;
-    }
-    .msg.show   { display: block; }
-    .msg.erro   { background: rgba(248,113,113,.12); border: 1px solid rgba(248,113,113,.3); color: var(--erro); }
-    .msg.ok     { background: rgba(74,222,128,.1);   border: 1px solid rgba(74,222,128,.3);  color: var(--sucesso); }
-    .msg.aviso  { background: rgba(251,191,36,.1);   border: 1px solid rgba(251,191,36,.3);  color: var(--amarelo); }
-
-    /* ─── SPINNER ────────────────────────────────────── */
-    .spin {
-      display: none;
-      width: 20px; height: 20px;
-      border: 2px solid rgba(74,222,128,.25);
-      border-top-color: var(--verde);
-      border-radius: 50%;
-      animation: girar .7s linear infinite;
-      margin: 0 auto;
-    }
+    /* ── SPINNER ── */
+    .spin { display: none; width: 20px; height: 20px; border: 2px solid rgba(74,222,128,.25); border-top-color: var(--verde); border-radius: 50%; animation: girar .7s linear infinite; margin: 0 auto; }
     .spin.show { display: block; }
-    @keyframes girar { to { transform: rotate(360deg); } }
+    @keyframes girar { to{transform:rotate(360deg)} }
 
-    /* ─── LOBBY ──────────────────────────────────────── */
-    .sala-code-box {
-      background: var(--campo2);
-      border: 1.5px solid var(--cinza2);
-      border-radius: var(--r);
-      padding: 20px 16px;
-      text-align: center;
-      margin-bottom: 20px;
+    /* ── DIVIDER ── */
+    .divider { border: none; border-top: 1px solid var(--c2); margin: 20px 0; }
+
+    /* ── LOBBY ── */
+    .sala-code-box { background: var(--campo2); border: 1.5px solid var(--c2); border-radius: var(--r); padding: 20px 16px; text-align: center; margin-bottom: 20px; }
+    .sala-code-lbl { font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--text2); margin-bottom: 8px; }
+    .sala-code-val { font-family: 'Bebas Neue', sans-serif; font-size: 48px; letter-spacing: 10px; color: var(--verde); filter: drop-shadow(0 0 12px rgba(74,222,128,.35)); line-height: 1; }
+    .sala-code-hint { font-size: 11px; color: var(--text2); margin-top: 6px; }
+
+    .p-titulo { font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--text2); margin-bottom: 10px; }
+    .p-lista  { list-style: none; }
+
+    /* Card de participante no lobby */
+    .p-card { display: flex; align-items: center; gap: 12px; padding: 12px 14px; background: var(--campo2); border: 1px solid var(--c2); border-radius: 8px; margin-bottom: 8px; transition: border-color var(--dur); }
+    .p-card.tem-clube { border-color: rgba(74,222,128,.2); }
+
+    /* Escudo mini (hexagonal) */
+    .escudo-mini {
+      width: 44px; height: 48px; flex-shrink: 0;
+      clip-path: polygon(50% 0%, 100% 18%, 100% 65%, 50% 100%, 0% 65%, 0% 18%);
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Bebas Neue', sans-serif; font-size: 14px; letter-spacing: 1px;
+      background: var(--c2); color: var(--text2);
     }
 
-    .sala-code-lbl {
-      font-size: 11px;
-      font-weight: 700;
-      letter-spacing: 2px;
-      text-transform: uppercase;
-      color: var(--text2);
-      margin-bottom: 8px;
-    }
+    .p-info { flex: 1; min-width: 0; }
+    .p-clube-nome { font-size: 14px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .p-tecnico-nome { font-size: 11px; color: var(--text2); margin-top: 1px; }
 
-    .sala-code-val {
-      font-family: 'Bebas Neue', sans-serif;
-      font-size: 48px;
-      letter-spacing: 10px;
-      color: var(--verde);
-      filter: drop-shadow(0 0 12px rgba(74,222,128,.35));
-      line-height: 1;
-    }
-
-    .sala-code-hint {
-      font-size: 11px;
-      color: var(--text2);
-      margin-top: 6px;
-    }
-
-    .participantes-titulo {
-      font-size: 11px;
-      font-weight: 700;
-      letter-spacing: 2px;
-      text-transform: uppercase;
-      color: var(--text2);
-      margin-bottom: 10px;
-    }
-
-    .participantes-lista { list-style: none; }
-
-    .participante {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 10px 14px;
-      background: var(--campo2);
-      border: 1px solid var(--cinza2);
-      border-radius: 8px;
-      margin-bottom: 6px;
-      font-size: 14px;
-      font-weight: 500;
-    }
-
-    .participante-nome { flex: 1; }
-
-    .tag {
-      font-size: 10px;
-      font-weight: 700;
-      letter-spacing: 1px;
-      text-transform: uppercase;
-      padding: 3px 7px;
-      border-radius: 4px;
-    }
-
+    .p-tags { display: flex; gap: 5px; flex-wrap: wrap; justify-content: flex-end; }
+    .tag { font-size: 10px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; padding: 3px 7px; border-radius: 4px; }
     .tag-dono   { background: rgba(251,191,36,.15); color: var(--amarelo); }
-    .tag-ativo  { background: rgba(74,222,128,.12); color: var(--verde); }
     .tag-voce   { background: rgba(255,255,255,.07); color: var(--text2); }
-    .tag-inativo{ background: rgba(248,113,113,.12); color: var(--erro); }
+    .tag-ok     { background: rgba(74,222,128,.12); color: var(--verde); }
+    .tag-sem    { background: rgba(248,113,113,.12); color: var(--erro); }
 
-    .lobby-meu-nome {
-      font-size: 12px;
-      color: var(--text2);
-      text-align: center;
-      margin-top: 14px;
-    }
-
+    .lobby-meu-nome { font-size: 12px; color: var(--text2); text-align: center; margin-top: 14px; }
     .lobby-meu-nome strong { color: var(--verde); }
 
-    /* ─── VOLTAR ─────────────────────────────────────── */
-    .voltar {
-      font-size: 13px;
-      color: var(--text2);
-      cursor: pointer;
-      text-align: center;
-      margin-top: 16px;
-      transition: color var(--dur);
-    }
+    /* ── EDITAR CLUBE (botão flutuante no lobby) ── */
+    .btn-edit-clube { display: flex; align-items: center; gap: 8px; width: 100%; padding: 12px 14px; border: 1px dashed var(--verde2); border-radius: var(--r); background: rgba(74,222,128,.05); color: var(--verde); font-family: 'Inter', sans-serif; font-size: 13px; font-weight: 600; cursor: pointer; transition: all var(--dur); margin-bottom: 16px; }
+    .btn-edit-clube:hover { background: rgba(74,222,128,.12); }
+
+    .voltar { font-size: 13px; color: var(--text2); cursor: pointer; text-align: center; margin-top: 16px; transition: color var(--dur); }
     .voltar:hover { color: var(--text); }
+    .rodape { margin-top: 40px; font-size: 11px; font-weight: 500; letter-spacing: 1.5px; text-transform: uppercase; color: var(--c3); text-align: center; }
 
-    /* ─── RODAPÉ ─────────────────────────────────────── */
-    .rodape {
-      margin-top: 40px;
-      font-size: 11px;
-      font-weight: 500;
-      letter-spacing: 1.5px;
-      text-transform: uppercase;
-      color: var(--cinza3);
-      text-align: center;
-    }
-
-    /* ─── TAGLINE HOME ───────────────────────────────── */
-    .tagline {
-      font-size: 14px;
-      color: var(--text2);
-      text-align: center;
-      line-height: 1.65;
-      margin-bottom: 28px;
-      max-width: 320px;
-      margin-left: auto;
-      margin-right: auto;
-    }
-
-    /* ─── FEATURES RÁPIDAS ───────────────────────────── */
-    .features {
-      display: flex;
-      gap: 8px;
-      justify-content: center;
-      flex-wrap: wrap;
-      margin-bottom: 28px;
-    }
-
-    .feat {
-      background: var(--cinza1);
-      border: 1px solid var(--cinza2);
-      border-radius: 99px;
-      padding: 5px 12px;
-      font-size: 12px;
-      font-weight: 600;
-      color: var(--text2);
-    }
-
-    /* ─── RESPONSIVO ─────────────────────────────────── */
     @media (max-width: 460px) {
-      .logo-title { font-size: 38px; }
+      .logo-title { font-size: 36px; }
       .sala-code-val { font-size: 36px; letter-spacing: 6px; }
       .card { padding: 20px; }
+      .escudo-lg { width: 80px; height: 88px; font-size: 24px; }
     }
-
   </style>
 </head>
 <body>
 <div id="app">
 
-  <!-- LOGO -->
   <div class="logo-area">
     <div class="logo-bola">⚽</div>
-    <div class="logo-title">
-      Era Uma Vez<span>na Firmino<span style="color:var(--text2);">...</span></span>
-    </div>
+    <div class="logo-title">Era Uma Vez<span>na Firmino<span style="color:var(--text2)">...</span></span></div>
     <div class="logo-sub">um jogo de manager entre amigos</div>
     <div class="pill"><span class="pill-dot"></span>Sala Privada</div>
   </div>
 
-  <!-- ─── TELA HOME ─────────────────────────────────── -->
+  <!-- ── HOME ── -->
   <div id="s-home" class="screen active">
-    <p class="tagline">
-      Draft de craques históricos.<br>
-      Clube seu. Liga com os parceiros.<br>
-      Quem monta melhor, leva o título.
-    </p>
+    <p class="tagline">Draft de craques históricos.<br>Clube seu. Liga com os parceiros.<br>Quem monta melhor, leva o título.</p>
     <div class="features">
       <span class="feat">⚡ Draft ao vivo</span>
       <span class="feat">🏆 Ligas e copas</span>
@@ -511,46 +200,26 @@
     </div>
     <div id="msg-home" class="msg"></div>
     <div class="home-btns">
-      <button class="btn-main btn-criar" onclick="ir('s-criar')">
-        <span>Criar Sala</span>
-        <span class="arr">→</span>
-      </button>
-      <button class="btn-main btn-entrar" onclick="ir('s-entrar')">
-        <span>Entrar na Sala</span>
-        <span class="arr">→</span>
-      </button>
+      <button class="btn-main btn-criar" onclick="ir('s-criar')"><span>Criar Sala</span><span class="arr">→</span></button>
+      <button class="btn-main btn-entrar" onclick="ir('s-entrar')"><span>Entrar na Sala</span><span class="arr">→</span></button>
     </div>
   </div>
 
-  <!-- ─── TELA CRIAR SALA ───────────────────────────── -->
+  <!-- ── CRIAR SALA ── -->
   <div id="s-criar" class="screen">
     <div class="card">
       <p class="card-label">Nova Sala</p>
       <div id="msg-criar" class="msg"></div>
-
-      <div class="field">
-        <label>Nome da Sala</label>
-        <input type="text" id="f-nome-sala" placeholder="Ex: Liga dos Vagabundos" maxlength="40" />
-      </div>
-      <div class="field">
-        <label>Senha</label>
-        <input type="password" id="f-senha-criar" placeholder="Mínimo 3 caracteres" maxlength="20" />
-      </div>
-      <div class="field">
-        <label>Seu apelido de técnico</label>
-        <input type="text" id="f-tecnico-criar" placeholder="Ex: Thiago do Grêmio" maxlength="30" />
-      </div>
+      <div class="field"><label>Nome da Sala</label><input type="text" id="f-nome-sala" placeholder="Ex: Liga dos Vagabundos" maxlength="40" /></div>
+      <div class="field"><label>Senha</label><input type="password" id="f-senha-criar" placeholder="Mínimo 3 caracteres" maxlength="20" /></div>
+      <div class="field"><label>Seu apelido de técnico</label><input type="text" id="f-tecnico-criar" placeholder="Ex: Thiago do Grêmio" maxlength="30" /></div>
       <div class="field">
         <label>Limite de participantes</label>
         <select id="f-max">
-          <option value="2">2 participantes</option>
-          <option value="3">3 participantes</option>
-          <option value="4">4 participantes</option>
-          <option value="5">5 participantes</option>
-          <option value="6">6 participantes</option>
-          <option value="7">7 participantes</option>
-          <option value="8">8 participantes</option>
-          <option value="9">9 participantes</option>
+          <option value="2">2 participantes</option><option value="3">3 participantes</option>
+          <option value="4">4 participantes</option><option value="5">5 participantes</option>
+          <option value="6">6 participantes</option><option value="7">7 participantes</option>
+          <option value="8">8 participantes</option><option value="9">9 participantes</option>
           <option value="10" selected>10 participantes</option>
         </select>
       </div>
@@ -561,26 +230,14 @@
     </div>
   </div>
 
-  <!-- ─── TELA ENTRAR NA SALA ───────────────────────── -->
+  <!-- ── ENTRAR NA SALA ── -->
   <div id="s-entrar" class="screen">
     <div class="card">
       <p class="card-label">Entrar na Sala</p>
       <div id="msg-entrar" class="msg"></div>
-
-      <div class="field">
-        <label>Código da Sala</label>
-        <input type="text" id="f-codigo" class="code-input"
-               placeholder="ABC123" maxlength="6"
-               oninput="this.value=this.value.toUpperCase()" />
-      </div>
-      <div class="field">
-        <label>Senha</label>
-        <input type="password" id="f-senha-entrar" placeholder="Senha da sala" maxlength="20" />
-      </div>
-      <div class="field">
-        <label>Seu apelido de técnico</label>
-        <input type="text" id="f-tecnico-entrar" placeholder="Ex: Rafael Manager" maxlength="30" />
-      </div>
+      <div class="field"><label>Código da Sala</label><input type="text" id="f-codigo" class="code-input" placeholder="ABC123" maxlength="6" oninput="this.value=this.value.toUpperCase()" /></div>
+      <div class="field"><label>Senha</label><input type="password" id="f-senha-entrar" placeholder="Senha da sala" maxlength="20" /></div>
+      <div class="field"><label>Seu apelido de técnico</label><input type="text" id="f-tecnico-entrar" placeholder="Ex: Rafael Manager" maxlength="30" /></div>
       <hr class="divider" />
       <button id="btn-entrar" class="btn-acao" onclick="entrarSala()">Entrar na Sala</button>
       <div class="spin" id="spin-entrar"></div>
@@ -588,7 +245,53 @@
     </div>
   </div>
 
-  <!-- ─── TELA LOBBY ────────────────────────────────── -->
+  <!-- ── PERSONALIZAÇÃO DO CLUBE ── -->
+  <div id="s-clube" class="screen">
+    <div class="card">
+      <p class="card-label">Crie Seu Clube</p>
+      <div id="msg-clube" class="msg"></div>
+
+      <!-- Preview ao vivo do escudo -->
+      <div class="escudo-preview-wrap">
+        <div class="escudo-lg" id="prev-escudo">FC</div>
+        <div class="escudo-nome-preview" id="prev-nome">Meu Clube</div>
+        <span class="contraste-badge contraste-ok" id="prev-contraste">Contraste OK</span>
+      </div>
+
+      <div class="field">
+        <label>Nome do Clube</label>
+        <input type="text" id="f-clube-nome" placeholder="Ex: Thiago FC" maxlength="30"
+               oninput="atualizarPreview()" />
+      </div>
+
+      <div class="color-row">
+        <div class="field">
+          <label>Cor do Escudo</label>
+          <div class="color-input-wrap">
+            <input type="color" id="f-cor-fundo" value="#1a3a5c" oninput="atualizarPreview()" />
+          </div>
+        </div>
+        <div class="field">
+          <label>Cor do Texto</label>
+          <div class="color-input-wrap">
+            <input type="color" id="f-cor-texto" value="#f0c040" oninput="atualizarPreview()" />
+          </div>
+        </div>
+        <div class="field">
+          <label>Detalhe</label>
+          <div class="color-input-wrap">
+            <input type="color" id="f-cor-detalhe" value="#ffffff" oninput="atualizarPreview()" />
+          </div>
+        </div>
+      </div>
+
+      <hr class="divider" />
+      <button id="btn-clube" class="btn-acao" onclick="salvarClube()">Salvar Clube e Ir para o Lobby</button>
+      <div class="spin" id="spin-clube"></div>
+    </div>
+  </div>
+
+  <!-- ── LOBBY ── -->
   <div id="s-lobby" class="screen">
     <div class="card">
       <p class="card-label" id="lby-nome-sala">Lobby</p>
@@ -601,23 +304,26 @@
 
       <div id="msg-lobby" class="msg"></div>
 
-      <div class="participantes-titulo">Participantes</div>
-      <ul class="participantes-lista" id="lby-lista">
-        <li class="participante" style="color:var(--text2);">Carregando...</li>
+      <!-- Botão editar clube -->
+      <button class="btn-edit-clube" onclick="editarClube()">
+        <span id="lby-escudo-mini-btn" style="font-family:'Bebas Neue',sans-serif;font-size:13px;">⬡</span>
+        <span id="lby-btn-clube-txt">Criar meu clube</span>
+        <span style="margin-left:auto;font-size:16px;">✏️</span>
+      </button>
+
+      <div class="p-titulo">Participantes</div>
+      <ul class="p-lista" id="lby-lista">
+        <li class="p-card"><span style="color:var(--text2)">Carregando...</span></li>
       </ul>
 
       <hr class="divider" />
-
       <div id="ctrl-dono" style="display:none;">
         <button class="btn-acao" disabled style="opacity:.4;cursor:not-allowed;">
           Iniciar Temporada &nbsp;·&nbsp; disponível na Etapa 4
         </button>
       </div>
 
-      <p class="lobby-meu-nome">
-        Você está jogando como <strong id="lby-meu-nome">—</strong>
-      </p>
-
+      <p class="lobby-meu-nome">Você está jogando como <strong id="lby-meu-nome">—</strong></p>
       <button class="btn-ghost" onclick="sairLobby()">Sair da Sala</button>
     </div>
   </div>
@@ -626,49 +332,35 @@
 </div>
 
 <script>
-  // ─── CONFIG ───────────────────────────────────────────
-  var API = 'https://script.google.com/macros/s/AKfycbwnjcMCR6p40E3oGEfRo0lfSX6J_hnma9xrrKniSXGbPKzSfCPrHClYgUneHybjt585pw/exec';
-
-  // ─── SESSÃO (memória, sem localStorage) ───────────────
-  var S = { roomId: null, userId: null, nomeSala: null, nick: null, dono: false };
+  var API  = 'https://script.google.com/macros/s/AKfycbwnjcMCR6p40E3oGEfRo0lfSX6J_hnma9xrrKniSXGbPKzSfCPrHClYgUneHybjt585pw/exec';
+  var S    = { roomId: null, userId: null, nomeSala: null, nick: null, dono: false, clubId: null, temClube: false };
   var poll = null;
 
-  // ─── NAVEGAÇÃO ────────────────────────────────────────
+  // ── NAVEGAÇÃO ──
   function ir(id) {
     document.querySelectorAll('.screen').forEach(function(s) { s.classList.remove('active'); });
     document.getElementById(id).classList.add('active');
     limparMsgs();
   }
-
   function limparMsgs() {
-    document.querySelectorAll('.msg').forEach(function(m) {
-      m.className = 'msg'; m.textContent = '';
-    });
+    document.querySelectorAll('.msg').forEach(function(m) { m.className = 'msg'; m.textContent = ''; });
   }
-
   function msg(id, txt, tipo) {
     var el = document.getElementById(id);
     el.className = 'msg ' + tipo + ' show';
     el.textContent = txt;
   }
-
-  function loading(btnId, spinId, ativo) {
-    var b = document.getElementById(btnId), s = document.getElementById(spinId);
-    b.disabled = ativo;
-    b.style.display = ativo ? 'none' : 'block';
-    s.className = ativo ? 'spin show' : 'spin';
+  function loading(btnId, spinId, on) {
+    var b = document.getElementById(btnId), sp = document.getElementById(spinId);
+    b.disabled = on; b.style.display = on ? 'none' : 'block';
+    sp.className = on ? 'spin show' : 'spin';
   }
 
-  // ─── API ──────────────────────────────────────────────
+  // ── API ──
   function post(data) {
-    return fetch(API, {
-      method: 'POST',
-      headers: { 'Content-Type': 'text/plain' },
-      body: JSON.stringify(data),
-      redirect: 'follow'
-    }).then(function(r) { return r.json(); });
+    return fetch(API, { method: 'POST', headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify(data), redirect: 'follow' }).then(function(r) { return r.json(); });
   }
-
   function get(params) {
     var qs = Object.keys(params).map(function(k) {
       return encodeURIComponent(k) + '=' + encodeURIComponent(params[k]);
@@ -676,68 +368,99 @@
     return fetch(API + '?' + qs, { redirect: 'follow' }).then(function(r) { return r.json(); });
   }
 
-  // ─── CRIAR SALA ───────────────────────────────────────
+  // ── CRIAR SALA ──
   function criarSala() {
-    var nome  = v('f-nome-sala');
-    var senha = document.getElementById('f-senha-criar').value;
-    var nick  = v('f-tecnico-criar');
-    var max   = document.getElementById('f-max').value;
-
-    if (!nome)            { msg('msg-criar', 'Informe o nome da sala.', 'erro'); return; }
-    if (senha.length < 3) { msg('msg-criar', 'Senha precisa ter pelo menos 3 caracteres.', 'erro'); return; }
-    if (!nick)            { msg('msg-criar', 'Informe seu apelido de técnico.', 'erro'); return; }
-    if (semApi())         { msg('msg-criar', 'URL da API não configurada. Leia o guia_etapa1.md.', 'erro'); return; }
-
-    loading('btn-criar', 'spin-criar', true);
-
-    post({ action: 'createRoom', nomeSala: nome, senha: senha, nomeTecnico: nick, maxHumanos: max })
+    var nome = v('f-nome-sala'), senha = document.getElementById('f-senha-criar').value;
+    var nick = v('f-tecnico-criar'), max = document.getElementById('f-max').value;
+    if (!nome)             { msg('msg-criar','Informe o nome da sala.','erro'); return; }
+    if (senha.length < 3)  { msg('msg-criar','Senha precisa ter 3+ caracteres.','erro'); return; }
+    if (!nick)             { msg('msg-criar','Informe seu apelido de técnico.','erro'); return; }
+    loading('btn-criar','spin-criar',true);
+    post({ action:'createRoom', nomeSala:nome, senha:senha, nomeTecnico:nick, maxHumanos:max })
       .then(function(res) {
-        loading('btn-criar', 'spin-criar', false);
-        if (res.success) {
-          S.roomId = res.roomId; S.userId = res.userId;
-          S.nomeSala = res.nomeSala; S.nick = res.nomeTecnico; S.dono = true;
-          abrirLobby();
-        } else {
-          msg('msg-criar', res.error || 'Erro ao criar sala.', 'erro');
-        }
-      })
-      .catch(function() {
-        loading('btn-criar', 'spin-criar', false);
-        msg('msg-criar', 'Falha na conexão com o servidor.', 'erro');
-      });
+        loading('btn-criar','spin-criar',false);
+        if (res.success) { sessao(res); irParaClube(); }
+        else msg('msg-criar', res.error || 'Erro ao criar sala.', 'erro');
+      }).catch(function() { loading('btn-criar','spin-criar',false); msg('msg-criar','Falha na conexão.','erro'); });
   }
 
-  // ─── ENTRAR NA SALA ───────────────────────────────────
+  // ── ENTRAR NA SALA ──
   function entrarSala() {
-    var codigo = v('f-codigo');
-    var senha  = document.getElementById('f-senha-entrar').value;
+    var codigo = v('f-codigo'), senha = document.getElementById('f-senha-entrar').value;
     var nick   = v('f-tecnico-entrar');
-
-    if (codigo.length !== 6) { msg('msg-entrar', 'Código da sala tem 6 caracteres.', 'erro'); return; }
-    if (!senha)               { msg('msg-entrar', 'Informe a senha da sala.', 'erro'); return; }
-    if (!nick)                { msg('msg-entrar', 'Informe seu apelido de técnico.', 'erro'); return; }
-    if (semApi())             { msg('msg-entrar', 'URL da API não configurada. Leia o guia_etapa1.md.', 'erro'); return; }
-
-    loading('btn-entrar', 'spin-entrar', true);
-
-    post({ action: 'joinRoom', roomId: codigo, senha: senha, nomeTecnico: nick })
+    if (codigo.length !== 6) { msg('msg-entrar','Código tem 6 caracteres.','erro'); return; }
+    if (!senha)              { msg('msg-entrar','Informe a senha.','erro'); return; }
+    if (!nick)               { msg('msg-entrar','Informe seu apelido.','erro'); return; }
+    loading('btn-entrar','spin-entrar',true);
+    post({ action:'joinRoom', roomId:codigo, senha:senha, nomeTecnico:nick })
       .then(function(res) {
-        loading('btn-entrar', 'spin-entrar', false);
-        if (res.success) {
-          S.roomId = res.roomId; S.userId = res.userId;
-          S.nomeSala = res.nomeSala; S.nick = res.nomeTecnico; S.dono = false;
-          abrirLobby();
-        } else {
-          msg('msg-entrar', res.error || 'Erro ao entrar na sala.', 'erro');
-        }
-      })
-      .catch(function() {
-        loading('btn-entrar', 'spin-entrar', false);
-        msg('msg-entrar', 'Falha na conexão com o servidor.', 'erro');
-      });
+        loading('btn-entrar','spin-entrar',false);
+        if (res.success) { sessao(res); irParaClube(); }
+        else msg('msg-entrar', res.error || 'Erro ao entrar na sala.', 'erro');
+      }).catch(function() { loading('btn-entrar','spin-entrar',false); msg('msg-entrar','Falha na conexão.','erro'); });
   }
 
-  // ─── LOBBY ────────────────────────────────────────────
+  function sessao(res) {
+    S.roomId = res.roomId; S.userId = res.userId;
+    S.nomeSala = res.nomeSala; S.nick = res.nomeTecnico; S.dono = !!res.isOwner;
+  }
+
+  // ── TELA CLUBE ──
+  function irParaClube() { ir('s-clube'); atualizarPreview(); }
+
+  function editarClube() { stopPoll(); ir('s-clube'); atualizarPreview(); }
+
+  // ── PREVIEW AO VIVO ──
+  function atualizarPreview() {
+    var nome    = document.getElementById('f-clube-nome').value.trim() || 'Meu Clube';
+    var fundo   = document.getElementById('f-cor-fundo').value;
+    var texto   = document.getElementById('f-cor-texto').value;
+    var iniciais = gerarIniciaisJS(nome);
+
+    document.getElementById('prev-escudo').style.background = fundo;
+    document.getElementById('prev-escudo').style.color      = texto;
+    document.getElementById('prev-escudo').textContent      = iniciais;
+    document.getElementById('prev-nome').textContent        = nome;
+
+    var ratio = contrastRatioJS(fundo, texto);
+    var badge = document.getElementById('prev-contraste');
+    if (ratio >= 3) {
+      badge.className = 'contraste-badge contraste-ok';
+      badge.textContent = 'Contraste OK (' + ratio.toFixed(1) + ':1)';
+    } else {
+      badge.className = 'contraste-badge contraste-ruim';
+      badge.textContent = 'Contraste ruim (' + ratio.toFixed(1) + ':1) — ajuste as cores';
+    }
+  }
+
+  // ── SALVAR CLUBE ──
+  function salvarClube() {
+    var nome    = v('f-clube-nome');
+    var fundo   = document.getElementById('f-cor-fundo').value;
+    var texto   = document.getElementById('f-cor-texto').value;
+    var detalhe = document.getElementById('f-cor-detalhe').value;
+
+    if (!nome) { msg('msg-clube','Informe o nome do clube.','erro'); return; }
+
+    var ratio = contrastRatioJS(fundo, texto);
+    if (ratio < 3) { msg('msg-clube','Contraste insuficiente. Ajuste as cores do escudo.','erro'); return; }
+
+    loading('btn-clube','spin-clube',true);
+    post({ action:'saveClubIdentity', roomId:S.roomId, userId:S.userId,
+           nomeClube:nome, primaryColor:fundo, textColor:texto, accentColor:detalhe })
+      .then(function(res) {
+        loading('btn-clube','spin-clube',false);
+        if (res.success) {
+          S.clubId   = res.clubId;
+          S.temClube = true;
+          abrirLobby();
+        } else {
+          msg('msg-clube', res.error || 'Erro ao salvar clube.', 'erro');
+        }
+      }).catch(function() { loading('btn-clube','spin-clube',false); msg('msg-clube','Falha na conexão.','erro'); });
+  }
+
+  // ── LOBBY ──
   function abrirLobby() {
     document.getElementById('lby-nome-sala').textContent = S.nomeSala;
     document.getElementById('lby-codigo').textContent    = S.roomId;
@@ -749,59 +472,109 @@
   }
 
   function sairLobby() {
-    clearInterval(poll); poll = null;
-    S = { roomId: null, userId: null, nomeSala: null, nick: null, dono: false };
+    stopPoll();
+    S = { roomId:null, userId:null, nomeSala:null, nick:null, dono:false, clubId:null, temClube:false };
     ir('s-home');
   }
 
+  function stopPoll() { if (poll) { clearInterval(poll); poll = null; } }
+
   function pollAgora() {
     if (!S.roomId || !S.userId) return;
-    get({ action: 'getRoomState', roomId: S.roomId, userId: S.userId })
+    get({ action:'getRoomState', roomId:S.roomId, userId:S.userId })
       .then(function(res) {
         if (!res.success) return;
-        renderLista(res.participantes, res.sala.ownerUserId);
+        renderLobby(res.participantes, res.clubes, res.sala.ownerUserId);
+        atualizarBtnClube(res.clubes);
       }).catch(function() {});
   }
 
-  function renderLista(lista, ownerId) {
+  function atualizarBtnClube(clubes) {
+    var meuClube = clubes.find(function(c) { return c.userId === S.userId; });
+    var btnTxt   = document.getElementById('lby-btn-clube-txt');
+    var escudoBtn = document.getElementById('lby-escudo-mini-btn');
+    if (meuClube) {
+      btnTxt.textContent = meuClube.nomeClube;
+      escudoBtn.textContent = meuClube.iniciais;
+      escudoBtn.style.color = meuClube.textColor;
+      escudoBtn.style.background = meuClube.primaryColor;
+      escudoBtn.style.padding = '2px 6px';
+      escudoBtn.style.borderRadius = '4px';
+    } else {
+      btnTxt.textContent = 'Criar meu clube';
+      escudoBtn.textContent = '⬡';
+      escudoBtn.style.background = 'transparent';
+    }
+  }
+
+  function renderLobby(participantes, clubes, ownerId) {
     var ul = document.getElementById('lby-lista');
     ul.innerHTML = '';
-    if (!lista || !lista.length) {
-      ul.innerHTML = '<li class="participante" style="color:var(--text2)">Nenhum participante.</li>';
+    if (!participantes || !participantes.length) {
+      ul.innerHTML = '<li class="p-card"><span style="color:var(--text2)">Nenhum participante.</span></li>';
       return;
     }
-    lista.forEach(function(p) {
-      var li = document.createElement('li');
-      li.className = 'participante';
+    participantes.forEach(function(p) {
+      var clube = clubes.find(function(c) { return c.userId === p.userId; });
+      var li    = document.createElement('li');
+      li.className = 'p-card' + (clube ? ' tem-clube' : '');
 
+      // Escudo mini
+      var escHtml;
+      if (clube) {
+        escHtml = '<div class="escudo-mini" style="background:' + clube.primaryColor +
+                  ';color:' + clube.textColor + '">' + esc(clube.iniciais) + '</div>';
+      } else {
+        escHtml = '<div class="escudo-mini">?</div>';
+      }
+
+      // Nomes
+      var clubeNome   = clube ? esc(clube.nomeClube) : '<span style="color:var(--text2)">Sem clube</span>';
+      var tecnicoNome = esc(p.nomeTecnico);
+
+      // Tags
       var tags = '';
       if (p.userId === ownerId)  tags += '<span class="tag tag-dono">Dono</span>';
       if (p.userId === S.userId) tags += '<span class="tag tag-voce">Você</span>';
-      tags += p.status === 'ativo'
-        ? '<span class="tag tag-ativo">Ativo</span>'
-        : '<span class="tag tag-inativo">Inativo</span>';
+      tags += clube
+        ? '<span class="tag tag-ok">' + statusLabel(clube.statusClube) + '</span>'
+        : '<span class="tag tag-sem">Sem clube</span>';
 
-      li.innerHTML = '<span class="participante-nome">' + esc(p.nomeTecnico) + '</span>' + tags;
+      li.innerHTML = escHtml +
+        '<div class="p-info"><div class="p-clube-nome">' + clubeNome + '</div>' +
+        '<div class="p-tecnico-nome">' + tecnicoNome + '</div></div>' +
+        '<div class="p-tags">' + tags + '</div>';
       ul.appendChild(li);
     });
   }
 
-  // ─── UTILITÁRIOS ──────────────────────────────────────
-  function v(id)   { return document.getElementById(id).value.trim(); }
-  function semApi(){ return API.indexOf('COLE_SUA_URL') !== -1; }
-  function esc(s)  {
-    var d = document.createElement('div');
-    d.appendChild(document.createTextNode(s));
-    return d.innerHTML;
+  function statusLabel(s) {
+    return { identidade_ok:'Clube criado', montando_elenco:'Montando elenco',
+             time_valido:'Time válido', pronto:'Pronto!' }[s] || s;
   }
 
-  // ─── INIT ─────────────────────────────────────────────
+  // ── UTILITÁRIOS JS DE COR ──
+  function luminanceJS(hex) {
+    var r = parseInt(hex.slice(1,3),16)/255, g = parseInt(hex.slice(3,5),16)/255, b = parseInt(hex.slice(5,7),16)/255;
+    r = r<=0.03928 ? r/12.92 : Math.pow((r+0.055)/1.055,2.4);
+    g = g<=0.03928 ? g/12.92 : Math.pow((g+0.055)/1.055,2.4);
+    b = b<=0.03928 ? b/12.92 : Math.pow((b+0.055)/1.055,2.4);
+    return 0.2126*r + 0.7152*g + 0.0722*b;
+  }
+  function contrastRatioJS(h1, h2) {
+    var l1 = luminanceJS(h1), l2 = luminanceJS(h2);
+    return (Math.max(l1,l2)+0.05) / (Math.min(l1,l2)+0.05);
+  }
+  function gerarIniciaisJS(nome) {
+    return nome.trim().split(/\s+/).map(function(p){return p[0];}).join('').toUpperCase().substring(0,3) || '?';
+  }
+
+  function v(id)  { return document.getElementById(id).value.trim(); }
+  function esc(s) { var d=document.createElement('div'); d.appendChild(document.createTextNode(s||'')); return d.innerHTML; }
+
+  // ── INIT ──
   window.addEventListener('DOMContentLoaded', function() {
-    if (semApi()) {
-      msg('msg-home',
-        '⚙  API não configurada — substitua API_URL pela URL do seu Apps Script (veja guia_etapa1.md).',
-        'aviso');
-    }
+    atualizarPreview();
   });
 </script>
 </body>
