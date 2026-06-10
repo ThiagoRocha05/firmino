@@ -176,6 +176,17 @@
 
     .btn-edit-clube { display: flex; align-items: center; gap: 10px; width: 100%; padding: 11px 14px; border: 1px dashed var(--verde2); border-radius: var(--r); background: rgba(74,222,128,.05); color: var(--verde); font-family: 'Inter', sans-serif; font-size: 13px; font-weight: 600; cursor: pointer; transition: all var(--dur); margin-bottom: 16px; }
     .btn-edit-clube:hover { background: rgba(74,222,128,.12); }
+
+    .btn-kick {
+      width: 26px; height: 26px; flex-shrink: 0;
+      border: 1px solid rgba(248,113,113,.25); border-radius: 5px;
+      background: rgba(248,113,113,.07); color: var(--erro);
+      font-size: 11px; font-weight: 700; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: all var(--dur); font-family: 'Inter', sans-serif;
+      padding: 0;
+    }
+    .btn-kick:hover { background: rgba(248,113,113,.22); border-color: var(--erro); }
     .btn-edit-clube .mini-wrap { width: 28px; height: 31px; flex-shrink: 0; display: flex; align-items: center; }
     .btn-edit-clube .edit-icon { margin-left: auto; font-size: 14px; opacity: .7; }
 
@@ -201,7 +212,6 @@
 
   <!-- ── HOME ── -->
   <div id="s-home" class="screen active">
-    <p class="tagline">Draft de craques históricos.<br>Clube seu. Liga com os parceiros.<br>Quem monta melhor, leva o título.</p>
     <div class="features">
       <span class="feat">⚡ Draft ao vivo</span>
       <span class="feat">🏆 Ligas e copas</span>
@@ -602,9 +612,25 @@
     if (!S.roomId || !S.userId) return;
     get({ action:'getRoomState', roomId:S.roomId, userId:S.userId })
       .then(function(res) {
-        if (!res.success) return;
+        if (!res.success) {
+          if (res.error && res.error.indexOf('removido') !== -1) {
+            stopPoll();
+            S = { roomId:null, userId:null, nomeSala:null, nick:null, dono:false, clubId:null, temClube:false };
+            ir('s-home');
+            msg('msg-home', 'Você foi removido da sala pelo dono.', 'aviso');
+          }
+          return;
+        }
         renderLobby(res.participantes, res.clubes, res.sala.ownerUserId);
         atualizarBtnClube(res.clubes);
+      }).catch(function() {});
+  }
+
+  function expulsarParticipante(targetUserId) {
+    if (!confirm('Remover este participante?\n\nEle poderá entrar novamente com o mesmo código e recriar o clube normalmente.')) return;
+    post({ action:'kickParticipant', roomId:S.roomId, userId:S.userId, targetUserId:targetUserId })
+      .then(function(res) {
+        if (!res.success) msg('msg-lobby', res.error || 'Erro ao remover participante.', 'erro');
       }).catch(function() {});
   }
 
@@ -659,10 +685,14 @@
         ? '<span class="tag tag-ok">' + statusLabel(clube.statusClube) + '</span>'
         : '<span class="tag tag-sem">Sem clube</span>';
 
+      var kickBtn = (S.dono && p.userId !== S.userId)
+        ? '<button class="btn-kick" title="Remover da sala" onclick="expulsarParticipante(\''+p.userId+'\')">✕</button>'
+        : '';
+
       li.innerHTML = escHtml +
         '<div class="p-info"><div class="p-clube-nome">' + clubeNome + '</div>' +
         '<div class="p-tecnico-nome">' + tecnicoNome + '</div></div>' +
-        '<div class="p-tags">' + tags + '</div>';
+        '<div class="p-tags">' + tags + '</div>' + kickBtn;
       ul.appendChild(li);
     });
   }
