@@ -1,1487 +1,1217 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Era Uma Vez na Firmino...</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
-  <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-    button { touch-action: manipulation; }
-    input, select { touch-action: manipulation; }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Era Uma Vez na Firmino...</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --campo:#0b1f10;--campo2:#0f2914;--verde:#4ade80;--verde2:#16a34a;
+  --amarelo:#fbbf24;--branco:#f9fafb;
+  --c1:#1f2d22;--c2:#2d3f30;--c3:#3d5540;
+  --text:#e8f5ea;--text2:#9ab89e;--erro:#f87171;
+  --azul:#60a5fa;--laranja:#fb923c;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:var(--campo);color:var(--text);font-family:'Inter',sans-serif;font-size:15px}
+body{display:flex;flex-direction:column;min-height:100vh;padding:0 0 56px}
+body.em-draft{padding:0}
+body.em-draft .logo-area,body.em-draft .rodape{display:none!important}
 
-    :root {
-      --campo:   #0b1f10;
-      --campo2:  #0f2914;
-      --verde:   #4ade80;
-      --verde2:  #16a34a;
-      --amarelo: #fbbf24;
-      --branco:  #f9fafb;
-      --c1:      #1f2d22;
-      --c2:      #2d3f30;
-      --c3:      #3d5540;
-      --text:    #e8f5ea;
-      --text2:   #9ab89e;
-      --erro:    #f87171;
-      --r:       10px;
-      --dur:     .2s;
-    }
+/* LOGO */
+.logo-area{text-align:center;padding:28px 20px 8px}
+.logo-area h1{font-family:'Bebas Neue',cursive;font-size:2.2rem;color:var(--verde);letter-spacing:2px;line-height:1}
+.logo-area p{color:var(--text2);font-size:.8rem;margin-top:4px}
 
-    html, body { min-height: 100%; font-family: 'Inter', sans-serif; background: var(--campo); color: var(--text); }
+/* CARDS */
+.card{background:var(--c1);border-radius:14px;padding:20px;margin:12px 16px;border:1px solid var(--c3)}
+.card h2{font-family:'Bebas Neue',cursive;font-size:1.4rem;color:var(--verde);letter-spacing:1px;margin-bottom:14px}
 
-    body::before {
-      content: ''; position: fixed; inset: 0; pointer-events: none; z-index: 0;
-      background-image:
-        repeating-linear-gradient(0deg, transparent, transparent 58px, rgba(255,255,255,.018) 58px, rgba(255,255,255,.018) 60px),
-        repeating-linear-gradient(90deg, transparent, transparent 58px, rgba(255,255,255,.012) 58px, rgba(255,255,255,.012) 60px);
-    }
-    body::after {
-      content: ''; position: fixed; top: 50%; left: 50%; transform: translate(-50%,-50%);
-      width: 520px; height: 520px; border-radius: 50%;
-      border: 1px solid rgba(255,255,255,.04); pointer-events: none; z-index: 0;
-    }
+/* INPUTS */
+label{display:block;font-size:.75rem;color:var(--text2);margin-bottom:4px;margin-top:12px;text-transform:uppercase;letter-spacing:.5px}
+input,select{width:100%;padding:10px 12px;background:var(--c2);border:1px solid var(--c3);border-radius:8px;color:var(--text);font-size:.95rem;outline:none}
+input:focus,select:focus{border-color:var(--verde)}
+input::placeholder{color:var(--text2)}
 
-    #app { position: relative; z-index: 1; min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 32px 16px 48px; }
+/* BUTTONS */
+.btn{display:block;width:100%;padding:12px;border:none;border-radius:10px;font-size:1rem;font-weight:600;cursor:pointer;transition:opacity .15s;margin-top:14px}
+.btn:active{opacity:.8}
+.btn-primary{background:var(--verde2);color:#fff}
+.btn-sec{background:var(--c2);color:var(--verde);border:1px solid var(--verde2)}
+.btn-danger{background:#7f1d1d;color:var(--erro)}
+.btn-amarelo{background:#92400e;color:var(--amarelo)}
+.btn-ghost{background:transparent;color:var(--text2);border:1px solid var(--c3)}
+.btn:disabled{opacity:.4;cursor:not-allowed}
 
-    /* ── LOGO ── */
-    .logo-area { text-align: center; margin-bottom: 32px; user-select: none; }
-    .logo-bola { font-size: 40px; margin-bottom: 8px; filter: drop-shadow(0 0 24px rgba(74,222,128,.35)); }
-    .logo-title { font-family: 'Bebas Neue', sans-serif; font-size: clamp(36px,9vw,66px); letter-spacing: 2px; line-height: .95; color: var(--branco); }
-    .logo-title span { color: var(--verde); display: block; }
-    .logo-sub { font-size: 12px; font-weight: 500; letter-spacing: 3px; text-transform: uppercase; color: var(--text2); margin-top: 10px; }
-    .pill { display: inline-flex; align-items: center; gap: 6px; background: rgba(74,222,128,.12); border: 1px solid rgba(74,222,128,.25); border-radius: 99px; padding: 4px 12px; font-size: 11px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; color: var(--verde); margin-top: 12px; }
-    .pill-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--verde); animation: pulso 2s ease infinite; }
-    @keyframes pulso { 0%,100%{opacity:1} 50%{opacity:.3} }
+/* MENSAGEM */
+.msg{display:none;padding:10px 12px;border-radius:8px;font-size:.85rem;margin-top:10px;border-left:3px solid}
+.msg.ok{background:#052e16;color:#4ade80;border-color:#16a34a;display:block}
+.msg.erro{background:#450a0a;color:var(--erro);border-color:#b91c1c;display:block}
 
-    /* ── TELAS ── */
-    .screen { display: none; width: 100%; max-width: 440px; animation: up .22s ease; }
-    .screen.active { display: block; }
-    @keyframes up { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
+/* SALA CODE BOX */
+.sala-code-box{background:var(--c2);border-radius:10px;padding:14px 16px;text-align:center;margin:14px 0}
+.sala-code-box small{font-size:.7rem;color:var(--text2);text-transform:uppercase;letter-spacing:.6px}
+.sala-code-box .code{font-family:'Bebas Neue',cursive;font-size:2.6rem;color:var(--verde);letter-spacing:4px;line-height:1}
+.sala-code-box .sub-code{font-family:'Bebas Neue',cursive;font-size:1.6rem;color:var(--amarelo);letter-spacing:3px;line-height:1;margin-top:6px}
+.sala-code-box .copy-btn{font-size:.7rem;color:var(--text2);background:none;border:none;cursor:pointer;padding:2px 6px;border-radius:4px}
+.sala-code-box .copy-btn:hover{color:var(--verde)}
 
-    /* ── CARD ── */
-    .card { background: var(--c1); border: 1px solid var(--c2); border-radius: var(--r); padding: 28px; box-shadow: 0 8px 40px rgba(0,0,0,.4); }
-    .card-label { font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--text2); margin-bottom: 20px; }
+/* TEAM CODE BOX */
+.team-code-box{background:#0a1a0e;border:1px dashed var(--c3);border-radius:10px;padding:12px 16px;text-align:center;margin:10px 0}
+.team-code-box small{font-size:.7rem;color:var(--text2);text-transform:uppercase;letter-spacing:.5px}
+.team-code-box .tc{font-family:monospace;font-size:.8rem;color:var(--amarelo);word-break:break-all;margin-top:4px}
+.team-code-box .copy-btn{font-size:.7rem;color:var(--text2);background:none;border:none;cursor:pointer;padding:2px 6px}
+.team-code-box .copy-btn:hover{color:var(--amarelo)}
 
-    /* ── BOTÕES HOME ── */
-    .home-btns { display: flex; flex-direction: column; gap: 12px; }
-    .tagline { font-size: 14px; color: var(--text2); text-align: center; line-height: 1.65; margin-bottom: 24px; }
-    .features { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-bottom: 28px; }
-    .feat { background: var(--c1); border: 1px solid var(--c2); border-radius: 99px; padding: 5px 12px; font-size: 12px; font-weight: 600; color: var(--text2); }
+/* PARTICIPANTES */
+.part-list{margin-top:8px;display:flex;flex-direction:column;gap:6px}
+.part-item{display:flex;align-items:center;gap:8px;padding:8px 10px;background:var(--c2);border-radius:8px}
+.part-badge{font-size:.7rem;padding:2px 7px;border-radius:20px;font-weight:600}
+.part-badge.dono{background:#78350f;color:var(--amarelo)}
+.part-badge.ok{background:#052e16;color:var(--verde)}
+.part-badge.aguardando{background:var(--c3);color:var(--text2)}
+.part-badge.voltou{background:#052e16;color:var(--verde)}
+.part-badge.faltando{background:#1f1f1f;color:#6b7280}
+.part-name{font-size:.9rem;color:var(--text)}
+.part-club{font-size:.75rem;color:var(--text2);margin-left:auto}
 
-    .btn-main { display: flex; align-items: center; justify-content: space-between; width: 100%; padding: 18px 22px; border-radius: var(--r); border: none; cursor: pointer; font-family: 'Inter', sans-serif; font-weight: 700; font-size: 15px; transition: all var(--dur); }
-    .btn-main .arr { font-size: 18px; transition: transform var(--dur); }
-    .btn-main:hover .arr { transform: translateX(4px); }
-    .btn-criar  { background: var(--verde); color: #0b1f10; }
-    .btn-criar:hover { background: #6ee79a; }
-    .btn-entrar { background: var(--c2); color: var(--text); border: 1px solid var(--c3); }
-    .btn-entrar:hover { background: var(--c3); }
+/* ESCUDO */
+.escudo-wrap{display:flex;align-items:center;gap:10px}
+.escudo-wrap span{font-weight:600}
 
-    /* ── BOTÕES AÇÃO ── */
-    .btn-acao { display: block; width: 100%; padding: 15px; border: none; border-radius: var(--r); background: var(--verde); color: #0b1f10; font-family: 'Inter', sans-serif; font-weight: 700; font-size: 15px; cursor: pointer; transition: background var(--dur); }
-    .btn-acao:hover:not(:disabled) { background: #6ee79a; }
-    .btn-acao:disabled { opacity: .4; cursor: not-allowed; }
-    .btn-ghost { display: block; width: 100%; padding: 12px; border: 1px solid var(--c3); border-radius: var(--r); background: transparent; color: var(--text2); font-family: 'Inter', sans-serif; font-size: 13px; font-weight: 500; cursor: pointer; transition: all var(--dur); margin-top: 8px; }
-    .btn-ghost:hover { color: var(--text); border-color: var(--text2); }
+/* LOBBY ACTIONS */
+.lobby-actions{display:flex;flex-direction:column;gap:8px;margin-top:14px}
 
-    /* ── INPUTS ── */
-    .field { margin-bottom: 16px; }
-    .field label { display: block; font-size: 12px; font-weight: 600; letter-spacing: .5px; color: var(--text2); margin-bottom: 7px; }
-    .field input, .field select { display: block; width: 100%; background: var(--campo2); border: 1.5px solid var(--c2); border-radius: 8px; color: var(--text); font-family: 'Inter', sans-serif; font-size: 16px; font-weight: 500; padding: 12px 14px; outline: none; transition: border-color var(--dur), box-shadow var(--dur); }
-    .field input:focus, .field select:focus { border-color: var(--verde2); box-shadow: 0 0 0 3px rgba(74,222,128,.15); }
-    .field input::placeholder { color: var(--c3); }
-    .field input.code-input { font-size: 24px; font-weight: 700; letter-spacing: 8px; text-transform: uppercase; text-align: center; }
+/* MODE TOGGLE */
+.mode-toggle{display:flex;gap:0;background:var(--c2);border-radius:8px;overflow:hidden;margin-bottom:14px}
+.modo-btn{flex:1;padding:9px;border:none;background:transparent;color:var(--text2);font-size:.9rem;cursor:pointer;transition:all .2s}
+.modo-btn.ativo{background:var(--verde2);color:#fff;font-weight:600}
 
-    /* ── COLOR PICKER ROW ── */
-    .color-row { display: flex; gap: 12px; }
-    .color-row .field { flex: 1; }
-    .color-input-wrap { position: relative; }
-    .color-input-wrap input[type=color] { width: 100%; height: 48px; padding: 4px; border-radius: 8px; border: 1.5px solid var(--c2); background: var(--campo2); cursor: pointer; }
-    .color-input-wrap input[type=color]:focus { border-color: var(--verde2); }
+/* SAVE INFO BOX */
+.save-info-box{background:#052e16;border:1px solid var(--verde2);border-radius:10px;padding:12px;margin:12px 0;display:none}
+.save-info-box h4{color:var(--verde);font-size:.9rem;margin-bottom:8px}
+.save-info-row{display:flex;justify-content:space-between;font-size:.8rem;padding:2px 0}
+.save-info-row span{color:var(--text2)}
+.save-info-row strong{color:var(--text)}
 
-    /* ── ESCUDO PREVIEW ── */
-    .escudo-preview-wrap { display: flex; flex-direction: column; align-items: center; margin-bottom: 20px; gap: 10px; }
-    #prev-escudo { display: flex; align-items: center; justify-content: center; }
-    .escudo-nome-preview { font-size: 14px; font-weight: 700; color: var(--text2); text-align: center; max-width: 200px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .contraste-badge { font-size: 11px; font-weight: 700; padding: 3px 9px; border-radius: 99px; }
-    .contraste-ok   { background: rgba(74,222,128,.15); color: var(--verde); border: 1px solid rgba(74,222,128,.3); }
-    .contraste-ruim { background: rgba(248,113,113,.15); color: var(--erro); border: 1px solid rgba(248,113,113,.3); }
+/* TEMPO BANNER */
+.tempo-banner{position:fixed;top:0;left:0;right:0;z-index:999;background:#78350f;border-bottom:2px solid var(--amarelo);padding:10px 16px;display:flex;align-items:center;gap:10px;animation:slideDown .3s ease}
+.tempo-banner .tb-text{flex:1;font-size:.9rem;color:var(--amarelo);font-weight:600}
+.tempo-banner .tb-count{font-family:'Bebas Neue',cursive;font-size:2rem;color:var(--amarelo);min-width:50px;text-align:right;line-height:1}
+.tempo-banner .tb-dismiss{background:none;border:1px solid var(--amarelo);color:var(--amarelo);padding:5px 10px;border-radius:6px;font-size:.75rem;cursor:pointer;white-space:nowrap}
+@keyframes slideDown{from{transform:translateY(-100%)}to{transform:translateY(0)}}
 
-    /* ── SELETOR DE FORMA / DETALHE ── */
-    .selector-label { font-size: 10px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--text2); margin-bottom: 8px; }
+/* SAVE MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px}
+.modal-card{background:var(--c1);border:2px solid var(--verde2);border-radius:16px;padding:28px 24px;max-width:360px;width:100%;text-align:center}
+.modal-card h2{font-family:'Bebas Neue',cursive;font-size:1.8rem;color:var(--verde);margin-bottom:8px}
+.modal-card p{color:var(--text2);font-size:.85rem;margin-bottom:16px}
+.save-code-big{font-family:'Bebas Neue',cursive;font-size:3rem;color:var(--amarelo);letter-spacing:6px;background:var(--campo);padding:16px;border-radius:10px;margin:12px 0}
+.modal-card .btn{margin-top:10px}
 
-    .shape-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 7px; }
-    .shape-btn {
-      display: flex; flex-direction: column; align-items: center; gap: 5px;
-      padding: 10px 4px 7px; border: 1.5px solid var(--c2); border-radius: 8px;
-      background: var(--campo2); cursor: pointer; transition: all var(--dur);
-    }
-    .shape-btn:hover { border-color: var(--c3); background: rgba(255,255,255,.02); }
-    .shape-btn.selected { border-color: var(--verde); background: rgba(74,222,128,.07); }
-    .shape-btn span { font-size: 10px; font-weight: 700; color: var(--text2); text-transform: uppercase; letter-spacing: .5px; }
-    .shape-btn.selected span { color: var(--verde); }
+/* RETOMANDO STATE */
+.retomando-header{text-align:center;padding:12px 0}
+.retomando-header h3{font-family:'Bebas Neue',cursive;font-size:1.5rem;color:var(--amarelo)}
+.retomando-header p{color:var(--text2);font-size:.82rem;margin-top:4px}
+.retomando-progress{background:var(--c2);border-radius:8px;overflow:hidden;height:8px;margin:10px 0}
+.retomando-bar{background:var(--verde2);height:8px;transition:width .5s ease}
 
-    .detail-grid { display: grid; grid-template-columns: repeat(5,1fr); gap: 6px; }
-    .detail-btn {
-      display: flex; flex-direction: column; align-items: center; gap: 4px;
-      padding: 8px 3px 6px; border: 1.5px solid var(--c2); border-radius: 8px;
-      background: var(--campo2); cursor: pointer; transition: all var(--dur);
-    }
-    .detail-btn:hover { border-color: var(--c3); }
-    .detail-btn.selected { border-color: var(--verde); background: rgba(74,222,128,.07); }
-    .detail-btn span { font-size: 9px; font-weight: 700; color: var(--text2); text-transform: uppercase; letter-spacing: .3px; text-align: center; line-height: 1.2; }
-    .detail-btn.selected span { color: var(--verde); }
+/* DRAFT SCREEN */
+.draft-screen{display:flex;flex-direction:column;height:100vh;background:var(--campo);overflow:hidden}
+.draft-header{background:var(--c1);padding:10px 14px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--c3);flex-shrink:0}
+.draft-header .pick-info{flex:1}
+.draft-header .pick-round{font-size:.7rem;color:var(--text2)}
+.draft-header .pick-club{font-size:.95rem;font-weight:600;color:var(--texto)}
+.draft-header .salary-pill{background:var(--c2);border-radius:20px;padding:4px 10px;font-size:.75rem;color:var(--text2)}
+.draft-header .salary-pill span{color:var(--verde);font-weight:700}
+.vez-banner{background:linear-gradient(135deg,var(--verde2),#15803d);padding:8px 14px;text-align:center;font-size:.9rem;font-weight:700;color:#fff;flex-shrink:0}
 
-    /* ── MSGS ── */
-    .msg { display: none; font-size: 13px; font-weight: 500; padding: 11px 14px; border-radius: 8px; margin-bottom: 16px; line-height: 1.45; }
-    .msg.show  { display: block; }
-    .msg.erro  { background: rgba(248,113,113,.12); border: 1px solid rgba(248,113,113,.3); color: var(--erro); }
-    .msg.ok    { background: rgba(74,222,128,.1);   border: 1px solid rgba(74,222,128,.3);  color: var(--verde); }
-    .msg.aviso { background: rgba(251,191,36,.1);   border: 1px solid rgba(251,191,36,.3);  color: var(--amarelo); }
+/* TABS */
+.draft-tabs{display:flex;background:var(--c2);flex-shrink:0}
+.tab-btn{flex:1;padding:9px;border:none;background:transparent;color:var(--text2);font-size:.8rem;font-weight:600;cursor:pointer;border-bottom:2px solid transparent}
+.tab-btn.ativo{color:var(--verde);border-bottom:2px solid var(--verde)}
+.draft-tab-content{flex:1;overflow-y:auto;padding:10px 12px}
 
-    /* ── SPINNER ── */
-    .spin { display: none; width: 20px; height: 20px; border: 2px solid rgba(74,222,128,.25); border-top-color: var(--verde); border-radius: 50%; animation: girar .7s linear infinite; margin: 0 auto; }
-    .spin.show { display: block; }
-    @keyframes girar { to{transform:rotate(360deg)} }
+/* FILTER BAR */
+.filter-bar{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;margin-bottom:8px;scrollbar-width:none}
+.filter-bar::-webkit-scrollbar{display:none}
+.filter-chip{padding:5px 12px;border-radius:20px;border:1px solid var(--c3);background:var(--c2);color:var(--text2);font-size:.75rem;white-space:nowrap;cursor:pointer}
+.filter-chip.ativo{background:var(--verde2);border-color:var(--verde2);color:#fff}
+.search-box{margin-bottom:8px}
+.search-box input{background:var(--c2);border-radius:8px;padding:8px 12px;font-size:.85rem}
 
-    /* ── DIVIDER ── */
-    .divider { border: none; border-top: 1px solid var(--c2); margin: 18px 0; }
+/* JOGADOR CARD */
+.jog-card{display:flex;align-items:center;gap:10px;padding:9px 10px;background:var(--c2);border-radius:9px;margin-bottom:7px;cursor:pointer;border:1px solid transparent;transition:border-color .15s}
+.jog-card:hover{border-color:var(--verde2)}
+.jog-card.tomado{opacity:.38;cursor:not-allowed}
+.jog-card.selected{border-color:var(--verde);background:rgba(74,222,128,.08)}
+.jog-ovr{font-family:'Bebas Neue',cursive;font-size:1.35rem;min-width:34px;text-align:center;color:var(--verde)}
+.jog-info{flex:1}
+.jog-info .apelido{font-size:.9rem;font-weight:600}
+.jog-info .meta{font-size:.72rem;color:var(--text2)}
+.jog-sal{font-size:.8rem;color:var(--amarelo);font-weight:600;white-space:nowrap}
+.star{font-size:.7rem;margin-left:3px}
+.star.ouro{color:var(--amarelo)}
+.star.prata{color:#94a3b8}
 
-    /* ── LOBBY ── */
-    .sala-code-box { background: var(--campo2); border: 1.5px solid var(--c2); border-radius: var(--r); padding: 20px 16px; text-align: center; margin-bottom: 20px; }
-    .sala-code-lbl { font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--text2); margin-bottom: 8px; }
-    .sala-code-val { font-family: 'Bebas Neue', sans-serif; font-size: 48px; letter-spacing: 10px; color: var(--verde); filter: drop-shadow(0 0 12px rgba(74,222,128,.35)); line-height: 1; }
-    .sala-code-hint { font-size: 11px; color: var(--text2); margin-top: 6px; }
+/* PICK SHEET */
+.pick-sheet{position:fixed;bottom:0;left:0;right:0;background:var(--c1);border-top:2px solid var(--verde2);padding:14px 16px;z-index:80;display:none}
+.pick-sheet.aberto{display:block}
+.pick-sheet h3{font-family:'Bebas Neue',cursive;font-size:1.3rem;color:var(--verde);margin-bottom:6px}
+.pick-sheet .sal-row{display:flex;justify-content:space-between;font-size:.82rem;color:var(--text2);margin-bottom:10px}
+.pick-sheet .sal-val{color:var(--amarelo);font-weight:700}
+.pick-btns{display:flex;gap:8px}
+.pick-btns .btn{flex:1;margin-top:0;padding:10px}
+.sal-bar-wrap{background:var(--c3);border-radius:4px;height:6px;margin-bottom:10px;overflow:hidden}
+.sal-bar-fill{background:var(--verde2);height:6px;transition:width .3s}
+.sal-bar-fill.perigo{background:var(--erro)}
 
-    .p-titulo { font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--text2); margin-bottom: 10px; }
-    .p-lista  { list-style: none; }
+/* ELENCO TAB */
+.elenco-title{font-size:.75rem;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;margin:10px 0 4px}
+.elenco-sal-bar{background:var(--c2);border-radius:8px;padding:10px 12px;margin-bottom:10px}
+.elenco-sal-bar .top{display:flex;justify-content:space-between;font-size:.8rem;margin-bottom:6px}
+.elenco-jog{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--c3)}
+.elenco-jog:last-child{border:none}
+.elenco-jog .pos{font-size:.65rem;background:var(--c3);color:var(--text2);padding:2px 6px;border-radius:4px;min-width:36px;text-align:center}
+.elenco-jog .nome{font-size:.85rem;flex:1;padding:0 8px}
+.elenco-jog .ovr{font-size:.85rem;color:var(--verde);font-weight:700}
 
-    .p-card { display: flex; align-items: center; gap: 12px; padding: 12px 14px; background: var(--campo2); border: 1px solid var(--c2); border-radius: 8px; margin-bottom: 8px; transition: border-color var(--dur); }
-    .p-card.tem-clube { border-color: rgba(74,222,128,.2); }
-    .p-escudo-wrap { width: 44px; height: 48px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
-    .p-escudo-vazio { width: 44px; height: 48px; flex-shrink: 0; background: var(--c2); border-radius: 6px; display: flex; align-items: center; justify-content: center; color: var(--text2); font-size: 18px; font-weight: 700; }
+/* FILA TAB */
+.fila-item{display:flex;align-items:center;gap:8px;padding:8px 10px;background:var(--c2);border-radius:8px;margin-bottom:6px}
+.fila-item.atual{background:rgba(74,222,128,.1);border:1px solid var(--verde2)}
+.fila-num{font-family:'Bebas Neue',cursive;font-size:1rem;min-width:24px;color:var(--text2)}
+.fila-num.atual{color:var(--verde)}
+.fila-rodada{font-size:.7rem;color:var(--text2)}
+.fila-club{font-size:.85rem;font-weight:600}
 
-    .p-info { flex: 1; min-width: 0; }
-    .p-clube-nome { font-size: 14px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .p-tecnico-nome { font-size: 11px; color: var(--text2); margin-top: 1px; }
+/* RODAPÉ */
+.rodape{position:fixed;bottom:0;left:0;right:0;background:var(--c1);border-top:1px solid var(--c3);padding:8px 14px;z-index:70}
+.rodape-inner{display:flex;justify-content:center;align-items:center;gap:6px;font-size:.72rem;color:var(--text2)}
+.rodape-inner .dot{width:6px;height:6px;background:var(--verde2);border-radius:50%;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:.5}50%{opacity:1}}
 
-    .p-tags { display: flex; gap: 5px; flex-wrap: wrap; justify-content: flex-end; }
-    .tag { font-size: 10px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; padding: 3px 7px; border-radius: 4px; }
-    .tag-dono   { background: rgba(251,191,36,.15); color: var(--amarelo); }
-    .tag-voce   { background: rgba(255,255,255,.07); color: var(--text2); }
-    .tag-ok     { background: rgba(74,222,128,.12); color: var(--verde); }
-    .tag-sem    { background: rgba(248,113,113,.12); color: var(--erro); }
+/* PAUSED OVERLAY (in draft) */
+.paused-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:500;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:12px;display:none}
+.paused-overlay h2{font-family:'Bebas Neue',cursive;font-size:2rem;color:var(--amarelo)}
+.paused-overlay p{color:var(--text2);font-size:.9rem;text-align:center;max-width:260px}
 
-    .lobby-meu-nome { font-size: 12px; color: var(--text2); text-align: center; margin-top: 14px; }
-    .lobby-meu-nome strong { color: var(--verde); }
-
-    .btn-edit-clube { display: flex; align-items: center; gap: 10px; width: 100%; padding: 11px 14px; border: 1px dashed var(--verde2); border-radius: var(--r); background: rgba(74,222,128,.05); color: var(--verde); font-family: 'Inter', sans-serif; font-size: 13px; font-weight: 600; cursor: pointer; transition: all var(--dur); margin-bottom: 16px; }
-    .btn-edit-clube:hover { background: rgba(74,222,128,.12); }
-
-    .btn-kick {
-      width: 26px; height: 26px; flex-shrink: 0;
-      border: 1px solid rgba(248,113,113,.25); border-radius: 5px;
-      background: rgba(248,113,113,.07); color: var(--erro);
-      font-size: 11px; font-weight: 700; cursor: pointer;
-      display: flex; align-items: center; justify-content: center;
-      transition: all var(--dur); font-family: 'Inter', sans-serif;
-      padding: 0;
-    }
-    .btn-kick:hover { background: rgba(248,113,113,.22); border-color: var(--erro); }
-    .btn-edit-clube .mini-wrap { width: 28px; height: 31px; flex-shrink: 0; display: flex; align-items: center; }
-    .btn-edit-clube .edit-icon { margin-left: auto; font-size: 14px; opacity: .7; }
-
-    .rodape { margin-top: 40px; font-size: 11px; font-weight: 500; letter-spacing: 1.5px; text-transform: uppercase; color: var(--c3); text-align: center; }
-
-    /* ── MOBILE ── */
-    @media (max-width: 460px) {
-      .logo-title    { font-size: 36px; }
-      .sala-code-val { font-size: 36px; letter-spacing: 6px; }
-      .card          { padding: 18px 16px; }
-
-      /* Shape selector */
-      .shape-btn      { padding: 8px 3px 6px; }
-      .shape-btn span { font-size: 9px; }
-
-      /* Detail selector — cabe 5 colunas mas menor */
-      .detail-btn      { padding: 6px 2px 5px; }
-      .detail-btn span { font-size: 8px; letter-spacing: 0; }
-
-      /* Botão kick mais fácil de tocar */
-      .btn-kick { width: 32px; height: 32px; font-size: 13px; }
-
-      /* Card do participante no lobby */
-      .p-card { gap: 9px; padding: 10px 11px; }
-    }
-
-    /* ── TELAS MUITO PEQUENAS (iPhone SE, Android compact) ── */
-    @media (max-width: 360px) {
-      .card        { padding: 14px 12px; }
-      .shape-grid  { gap: 5px; }
-      .detail-grid { gap: 3px; }
-      .color-row   { gap: 8px; }
-      .p-tags .tag { padding: 3px 5px; font-size: 9px; }
-      .sala-code-val { font-size: 30px; letter-spacing: 5px; }
-    }
-  </style>
+@media(min-width:600px){body{max-width:480px;margin:0 auto}.rodape{max-width:480px;left:50%;transform:translateX(-50%)}.tempo-banner{max-width:480px;left:50%;transform:translateX(-50%)}}
+</style>
 </head>
 <body>
-<div id="app">
 
+<!-- ════════════════════ TEMPO BANNER ════════════════════ -->
+<div id="tempo-banner" class="tempo-banner" style="display:none">
+  <div class="tb-text">⏱ <span id="tempo-quem"></span> pediu tempo!</div>
+  <div class="tb-count" id="tempo-count">60</div>
+  <button class="tb-dismiss" id="btn-dismiss-tempo" onclick="dispensarTempo()" style="display:none">Dispensar</button>
+</div>
+
+<!-- ════════════════════ SAVE MODAL ════════════════════ -->
+<div id="save-modal" class="modal-overlay" style="display:none" onclick="if(event.target===this)fecharSaveModal()">
+  <div class="modal-card">
+    <div style="font-size:2rem;margin-bottom:4px">💾</div>
+    <h2>Partida Salva!</h2>
+    <p>Compartilhe este código com todos os jogadores.<br>Vocês precisarão dele para retomar.</p>
+    <div class="save-code-big" id="save-modal-code">-</div>
+    <button class="btn btn-primary" onclick="copiarSaveCode()">Copiar Código</button>
+    <button class="btn btn-ghost" onclick="fecharSaveModal()">Fechar</button>
+  </div>
+</div>
+
+<!-- ════════════════════ HOME ════════════════════ -->
+<section id="s-home">
   <div class="logo-area">
-    <div class="logo-bola">⚽</div>
-    <div class="logo-title">Era Uma Vez<span>na Firmino<span style="color:var(--text2)">...</span></span></div>
-    <div class="logo-sub">um jogo de manager entre amigos</div>
-    <div class="pill"><span class="pill-dot"></span>Sala Privada</div>
+    <h1>Era Uma Vez na Firmino...</h1>
+    <p>Football Manager entre amigos</p>
   </div>
-
-  <!-- ── HOME ── -->
-  <div id="s-home" class="screen active">
-    <div class="features">
-      <span class="feat">⚡ Draft ao vivo</span>
-      <span class="feat">🏆 Ligas e copas</span>
-      <span class="feat">📈 Salary cap</span>
-      <span class="feat">🔁 Promoção e queda</span>
-    </div>
-    <div id="msg-home" class="msg"></div>
-    <div class="home-btns">
-      <button class="btn-main btn-criar" onclick="ir('s-criar')"><span>Criar Sala</span><span class="arr">→</span></button>
-      <button class="btn-main btn-entrar" onclick="ir('s-entrar')"><span>Entrar na Sala</span><span class="arr">→</span></button>
-    </div>
+  <div class="card">
+    <button class="btn btn-primary" onclick="ir('s-criar')">Criar Nova Sala</button>
+    <button class="btn btn-sec" onclick="ir('s-entrar')">Entrar em Sala</button>
+    <button class="btn btn-amarelo" onclick="ir('s-retomar')">↩ Retomar Partida</button>
   </div>
+</section>
 
-  <!-- ── CRIAR SALA ── -->
-  <div id="s-criar" class="screen">
-    <div class="card">
-      <p class="card-label">Nova Sala</p>
-      <div id="msg-criar" class="msg"></div>
-      <div class="field"><label>Nome da Sala</label><input type="text" id="f-nome-sala" placeholder="Ex: Liga dos Vagabundos" maxlength="40" /></div>
-      <div class="field"><label>Senha</label><input type="password" id="f-senha-criar" placeholder="Mínimo 3 caracteres" maxlength="20" /></div>
-      <div class="field"><label>Seu apelido de técnico</label><input type="text" id="f-tecnico-criar" placeholder="Ex: Thiago do Grêmio" maxlength="30" /></div>
-      <div class="field">
-        <label>Limite de participantes</label>
-        <select id="f-max">
-          <option value="1">1 participante (solo)</option>
-          <option value="2">2 participantes</option><option value="3">3 participantes</option>
-          <option value="4">4 participantes</option><option value="5">5 participantes</option>
-          <option value="6">6 participantes</option><option value="7">7 participantes</option>
-          <option value="8">8 participantes</option><option value="9">9 participantes</option>
-          <option value="10" selected>10 participantes</option>
-        </select>
+<!-- ════════════════════ CRIAR SALA ════════════════════ -->
+<section id="s-criar" style="display:none">
+  <div class="logo-area"><h1>Era Uma Vez na Firmino...</h1></div>
+  <div class="card">
+    <h2>Criar Sala</h2>
+    <label>Nome da Sala</label>
+    <input id="c-nome" placeholder="Ex: Temporada 2025" maxlength="40">
+    <label>Senha da Sala</label>
+    <input id="c-senha" type="password" placeholder="Mínimo 3 caracteres">
+    <label>Seu Nome de Técnico</label>
+    <input id="c-nick" placeholder="Como você quer ser chamado" maxlength="30">
+    <label>Máx. de Jogadores (2–10)</label>
+    <input id="c-max" type="number" value="10" min="2" max="10">
+    <button class="btn btn-primary" onclick="criarSala()">Criar Sala</button>
+    <button class="btn btn-ghost" onclick="ir('s-home')">← Voltar</button>
+    <div id="c-msg" class="msg"></div>
+  </div>
+</section>
+
+<!-- ════════════════════ ENTRAR ════════════════════ -->
+<section id="s-entrar" style="display:none">
+  <div class="logo-area"><h1>Era Uma Vez na Firmino...</h1></div>
+  <div class="card">
+    <h2>Entrar na Sala</h2>
+    <label>Código da Sala</label>
+    <input id="e-room" placeholder="Ex: ABCD23" maxlength="8" style="text-transform:uppercase">
+    <label>Senha da Sala</label>
+    <input id="e-senha" type="password">
+    <label>Seu Nome de Técnico</label>
+    <input id="e-nick" placeholder="Como você quer ser chamado" maxlength="30">
+    <button class="btn btn-primary" onclick="entrarSala()">Entrar</button>
+    <button class="btn btn-ghost" onclick="ir('s-home')">← Voltar</button>
+    <div id="e-msg" class="msg"></div>
+  </div>
+</section>
+
+<!-- ════════════════════ RETOMAR PARTIDA ════════════════════ -->
+<section id="s-retomar" style="display:none">
+  <div class="logo-area"><h1>Era Uma Vez na Firmino...</h1></div>
+  <div class="card">
+    <h2>Retomar Partida</h2>
+
+    <div class="mode-toggle">
+      <button class="modo-btn ativo" id="btn-modo-host" onclick="setModoRetomar('host')">Sou o Host</button>
+      <button class="modo-btn" id="btn-modo-jogador" onclick="setModoRetomar('jogador')">Sou Jogador</button>
+    </div>
+
+    <!-- HOST -->
+    <div id="form-ret-host">
+      <label>Código do Save</label>
+      <div style="display:flex;gap:6px">
+        <input id="rh-save" placeholder="Ex: SVAB3X8F" maxlength="8" style="text-transform:uppercase;flex:1">
+        <button class="btn btn-sec" style="width:auto;padding:10px 14px;margin-top:0" onclick="buscarSave()">Verificar</button>
       </div>
-      <hr class="divider" />
-      <button id="btn-criar" class="btn-acao" onclick="criarSala()">Criar Sala</button>
-      <div class="spin" id="spin-criar"></div>
-      <button class="btn-ghost" onclick="ir('s-home')">← Voltar</button>
+      <div id="save-info-box" class="save-info-box">
+        <h4>📁 Save encontrado</h4>
+        <div class="save-info-row"><span>Sala</span><strong id="si-sala">-</strong></div>
+        <div class="save-info-row"><span>Temporada</span><strong id="si-temp">-</strong></div>
+        <div class="save-info-row"><span>Draft</span><strong id="si-draft">-</strong></div>
+        <div class="save-info-row"><span>Times</span><strong id="si-times">-</strong></div>
+        <div class="save-info-row"><span>Salvo em</span><strong id="si-data">-</strong></div>
+      </div>
+      <label>Nome da Nova Sala</label>
+      <input id="rh-nome" placeholder="Ex: Temporada 2025 — Retomada" maxlength="40">
+      <label>Senha da Sala</label>
+      <input id="rh-senha" type="password" placeholder="Mínimo 3 caracteres">
+      <label>Meu Código de Time (do save)</label>
+      <input id="rh-team" placeholder="Cole seu código aqui">
+      <label>Meu Nome de Técnico</label>
+      <input id="rh-nick" placeholder="Pode ser igual ao original" maxlength="30">
+      <button class="btn btn-primary" onclick="criarSalaDoSave()">Criar Sala de Retomada</button>
     </div>
+
+    <!-- JOGADOR -->
+    <div id="form-ret-jogador" style="display:none">
+      <p style="font-size:.82rem;color:var(--text2);margin-bottom:10px">O host criou uma nova sala. Entre com o código que ele compartilhou + seu código de time original.</p>
+      <label>Novo Código da Sala</label>
+      <input id="rj-room" placeholder="Código dado pelo host" maxlength="8" style="text-transform:uppercase">
+      <label>Senha da Sala</label>
+      <input id="rj-senha" type="password">
+      <label>Meu Código de Time (do save)</label>
+      <input id="rj-team" placeholder="Cole seu código aqui">
+      <button class="btn btn-primary" onclick="entrarSalaDoSave()">Entrar na Sessão</button>
+    </div>
+
+    <button class="btn btn-ghost" onclick="ir('s-home')">← Voltar</button>
+    <div id="r-msg" class="msg"></div>
+  </div>
+</section>
+
+<!-- ════════════════════ CLUBE ════════════════════ -->
+<section id="s-clube" style="display:none">
+  <div class="logo-area"><h1>Era Uma Vez na Firmino...</h1></div>
+  <div class="card">
+    <h2>Seu Clube</h2>
+    <p style="color:var(--text2);font-size:.82rem;margin-bottom:6px">Sala: <strong id="cl-sala">-</strong> · Técnico: <strong id="cl-nick">-</strong></p>
+
+    <label>Nome do Clube</label>
+    <input id="cl-nome" placeholder="Ex: Atlético Firmino" maxlength="40">
+
+    <div style="display:flex;gap:10px">
+      <div style="flex:1">
+        <label>Cor Principal</label>
+        <input id="cl-cor1" type="color" value="#1a3c2e" style="height:42px;cursor:pointer;padding:2px">
+      </div>
+      <div style="flex:1">
+        <label>Cor do Texto</label>
+        <input id="cl-cor2" type="color" value="#f9fafb" style="height:42px;cursor:pointer;padding:2px">
+      </div>
+      <div style="flex:1">
+        <label>Cor Detalhe</label>
+        <input id="cl-cor3" type="color" value="#fbbf24" style="height:42px;cursor:pointer;padding:2px">
+      </div>
+    </div>
+
+    <label>Forma do Escudo</label>
+    <div id="shape-grid" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:6px"></div>
+
+    <label>Detalhes do Escudo</label>
+    <div id="detail-grid" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:6px"></div>
+
+    <label>Pré-visualização</label>
+    <div id="cl-preview" style="display:flex;justify-content:center;margin:10px 0;background:var(--campo);border-radius:10px;padding:16px"></div>
+
+    <button class="btn btn-primary" onclick="salvarClube()">Salvar Identidade</button>
+    <div id="cl-msg" class="msg"></div>
+  </div>
+</section>
+
+<!-- ════════════════════ LOBBY ════════════════════ -->
+<section id="s-lobby" style="display:none">
+  <div class="logo-area"><h1>Era Uma Vez na Firmino...</h1></div>
+
+  <div class="card" id="lobby-normal">
+    <h2 id="lb-title">Lobby</h2>
+    <div style="font-size:.8rem;color:var(--text2);margin-bottom:8px" id="lb-sub">Aguardando jogadores...</div>
+
+    <!-- Código da Sala -->
+    <div class="sala-code-box">
+      <small>Código da Sala</small>
+      <div class="code" id="lb-code">-</div>
+      <button class="copy-btn" onclick="copiarTexto(S.roomId,'lb-copy-msg')">📋 Copiar código</button>
+    </div>
+    <div id="lb-copy-msg" class="msg" style="font-size:.75rem;padding:6px"></div>
+
+    <!-- Código do Time (pessoal) -->
+    <div class="team-code-box">
+      <small>Meu Código de Time — guarde este código!</small>
+      <div class="tc" id="lb-team-code">-</div>
+      <button class="copy-btn" onclick="copiarTexto(S.userId,'lb-team-copy-msg')">📋 Copiar meu código</button>
+    </div>
+    <div id="lb-team-copy-msg" class="msg" style="font-size:.75rem;padding:6px"></div>
+
+    <!-- Participantes -->
+    <div id="lb-parts" class="part-list"></div>
+
+    <!-- Ações do Lobby -->
+    <div class="lobby-actions">
+      <button class="btn btn-sec" onclick="irParaClube()" id="btn-meu-clube">⚽ Definir Meu Clube</button>
+      <button class="btn btn-amarelo" onclick="pedirTempo()" id="btn-pedir-tempo">⏱ Pedir Tempo (60s)</button>
+      <button class="btn btn-primary" onclick="iniciarDraft()" id="btn-iniciar" style="display:none">▶ Iniciar Draft</button>
+      <button class="btn btn-danger" onclick="pausarJogo()" id="btn-pausar" style="display:none">⏸ Pausar e Salvar</button>
+    </div>
+    <div id="lb-msg" class="msg"></div>
   </div>
 
-  <!-- ── ENTRAR NA SALA ── -->
-  <div id="s-entrar" class="screen">
-    <div class="card">
-      <p class="card-label">Entrar na Sala</p>
-      <div id="msg-entrar" class="msg"></div>
-      <div class="field"><label>Código da Sala</label><input type="text" id="f-codigo" class="code-input" placeholder="ABC123" maxlength="6" oninput="this.value=this.value.toUpperCase()" /></div>
-      <div class="field"><label>Senha</label><input type="password" id="f-senha-entrar" placeholder="Senha da sala" maxlength="20" /></div>
-      <div class="field"><label>Seu apelido de técnico</label><input type="text" id="f-tecnico-entrar" placeholder="Ex: Rafael Manager" maxlength="30" /></div>
-      <hr class="divider" />
-      <button id="btn-entrar" class="btn-acao" onclick="entrarSala()">Entrar na Sala</button>
-      <div class="spin" id="spin-entrar"></div>
-      <button class="btn-ghost" onclick="ir('s-home')">← Voltar</button>
+  <!-- RETOMANDO STATE -->
+  <div class="card" id="lobby-retomando" style="display:none">
+    <div class="retomando-header">
+      <h3>↩ Retomando Partida</h3>
+      <p>Aguardando todos os jogadores retornarem</p>
     </div>
+    <div class="retomando-progress">
+      <div class="retomando-bar" id="ret-bar" style="width:0%"></div>
+    </div>
+    <div style="text-align:center;font-size:.8rem;color:var(--text2);margin-bottom:10px" id="ret-counter">0 / 0 retornaram</div>
+    <div id="ret-parts" class="part-list"></div>
+    <div class="lobby-actions">
+      <button class="btn btn-primary" onclick="continuarJogo()" id="btn-continuar" style="display:none">▶ Retomar Jogo</button>
+      <button class="btn btn-ghost" id="btn-aguardar-ret" style="display:none;opacity:.6" disabled>Aguardando jogadores...</button>
+    </div>
+    <div id="ret-msg" class="msg"></div>
   </div>
+</section>
 
-  <!-- ── PERSONALIZAÇÃO DO CLUBE ── -->
-  <div id="s-clube" class="screen">
-    <div class="card">
-      <p class="card-label">Crie Seu Clube</p>
-      <div id="msg-clube" class="msg"></div>
+<!-- ════════════════════ DRAFT ════════════════════ -->
+<section id="s-draft" style="display:none">
+  <div class="draft-screen">
 
-      <!-- Preview ao vivo -->
-      <div class="escudo-preview-wrap">
-        <div id="prev-escudo"></div>
-        <div class="escudo-nome-preview" id="prev-nome">Meu Clube</div>
-        <span class="contraste-badge contraste-ok" id="prev-contraste">Contraste OK</span>
+    <!-- Header -->
+    <div class="draft-header">
+      <div class="pick-info">
+        <div class="pick-round" id="dr-round">Rodada 1 · Pick 1</div>
+        <div class="pick-club" id="dr-club">Aguardando...</div>
       </div>
+      <div class="salary-pill" id="dr-sal-pill">Cap: <span>-</span></div>
+    </div>
 
-      <!-- Nome -->
-      <div class="field">
-        <label>Nome do Clube</label>
-        <input type="text" id="f-clube-nome" placeholder="Ex: Thiago FC" maxlength="30"
-               oninput="atualizarPreview()" />
+    <!-- Banner sua vez -->
+    <div class="vez-banner" id="dr-vez" style="display:none">🏆 É A SUA VEZ DE ESCOLHER!</div>
+
+    <!-- Banner pausado (no draft) -->
+    <div style="background:#78350f;padding:8px 14px;text-align:center;color:var(--amarelo);font-size:.85rem;font-weight:600;display:none" id="dr-paused-bar">
+      ⏸ Jogo pausado. Código do save: <strong id="dr-save-code">-</strong>
+    </div>
+
+    <!-- Tabs -->
+    <div class="draft-tabs">
+      <button class="tab-btn ativo" onclick="setTab('jogadores')">Jogadores</button>
+      <button class="tab-btn" onclick="setTab('elenco')">Meu Elenco</button>
+      <button class="tab-btn" onclick="setTab('fila')">Fila</button>
+    </div>
+
+    <!-- TAB JOGADORES -->
+    <div id="tab-jogadores" class="draft-tab-content">
+      <div class="filter-bar" id="filter-bar"></div>
+      <div class="search-box">
+        <input id="search-input" placeholder="Buscar jogador..." oninput="renderJogadores()">
       </div>
+      <div id="jogadores-list"></div>
+    </div>
 
-      <!-- Cores -->
-      <div class="color-row">
-        <div class="field">
-          <label>Fundo</label>
-          <div class="color-input-wrap">
-            <input type="color" id="f-cor-fundo" value="#1a3a5c" oninput="atualizarPreview()" />
-          </div>
+    <!-- TAB ELENCO -->
+    <div id="tab-elenco" class="draft-tab-content" style="display:none">
+      <div class="elenco-sal-bar">
+        <div class="top">
+          <span style="color:var(--text2);font-size:.8rem">Salário Gasto</span>
+          <span id="ec-sal-txt" style="color:var(--amarelo);font-weight:700">0 / 200</span>
         </div>
-        <div class="field">
-          <label>Texto</label>
-          <div class="color-input-wrap">
-            <input type="color" id="f-cor-texto" value="#f0c040" oninput="atualizarPreview()" />
-          </div>
-        </div>
-        <div class="field">
-          <label>Detalhe</label>
-          <div class="color-input-wrap">
-            <input type="color" id="f-cor-detalhe" value="#ffffff" oninput="atualizarPreview()" />
-          </div>
-        </div>
+        <div class="sal-bar-wrap"><div class="sal-bar-fill" id="ec-sal-bar" style="width:0%"></div></div>
       </div>
-
-      <hr class="divider" />
-
-      <!-- Forma do escudo -->
-      <div class="selector-label">Forma do Escudo</div>
-      <div id="shape-grid-container"></div>
-
-      <div class="selector-label" style="margin-top:14px;">Detalhe do Escudo</div>
-      <div id="detail-grid-container"></div>
-
-      <hr class="divider" />
-      <button id="btn-clube" class="btn-acao" onclick="salvarClube()">Salvar e Ir pro Lobby</button>
-      <div class="spin" id="spin-clube"></div>
+      <div id="elenco-list"></div>
     </div>
+
+    <!-- TAB FILA -->
+    <div id="tab-fila" class="draft-tab-content" style="display:none">
+      <div id="fila-list"></div>
+    </div>
+
+    <!-- Draft Actions (bottom) -->
+    <div style="padding:8px 12px;background:var(--c1);border-top:1px solid var(--c3);display:flex;gap:6px;flex-shrink:0">
+      <button class="btn btn-amarelo" onclick="pedirTempo()" style="flex:1;margin:0;padding:9px;font-size:.8rem">⏱ Tempo</button>
+      <button class="btn btn-danger" onclick="pausarJogo()" id="dr-btn-pausar" style="flex:1;margin:0;padding:9px;font-size:.8rem;display:none">⏸ Pausar</button>
+      <button class="btn btn-ghost" onclick="pularTurno()" id="dr-btn-skip" style="flex:1;margin:0;padding:9px;font-size:.8rem;display:none">⏭ Pular Vez</button>
+    </div>
+
   </div>
 
-  <!-- ── LOBBY ── -->
-  <div id="s-lobby" class="screen">
-    <div class="card">
-      <p class="card-label" id="lby-nome-sala">Lobby</p>
-
-      <div class="sala-code-box">
-        <div class="sala-code-lbl">Código da Sala</div>
-        <div class="sala-code-val" id="lby-codigo">------</div>
-        <div class="sala-code-hint">Manda o código pros amigos entrarem</div>
-      </div>
-
-      <div id="msg-lobby" class="msg"></div>
-
-      <!-- Botão editar clube -->
-      <button class="btn-edit-clube" onclick="editarClube()">
-        <span class="mini-wrap" id="lby-mini-wrap"><span style="font-size:20px;color:var(--text2);">⬡</span></span>
-        <span id="lby-btn-clube-txt">Criar meu clube</span>
-        <span class="edit-icon">✏️</span>
-      </button>
-
-      <div class="p-titulo">Participantes</div>
-      <ul class="p-lista" id="lby-lista">
-        <li class="p-card"><span style="color:var(--text2)">Carregando...</span></li>
-      </ul>
-
-      <hr class="divider" />
-      <div id="ctrl-dono" style="display:none;">
-        <button class="btn-acao" disabled style="opacity:.4;cursor:not-allowed;">
-          Iniciar Temporada &nbsp;·&nbsp; disponível na Etapa 4
-        </button>
-      </div>
-
-      <p class="lobby-meu-nome">Você está jogando como <strong id="lby-meu-nome">—</strong></p>
-      <button class="btn-ghost" onclick="sairLobby()">Sair da Sala</button>
+  <!-- Pick Sheet -->
+  <div id="pick-sheet" class="pick-sheet">
+    <h3 id="ps-nome">-</h3>
+    <div class="sal-row">
+      <span>Posição</span><span id="ps-pos" style="color:var(--text)">-</span>
+    </div>
+    <div class="sal-row">
+      <span>Overall</span><span id="ps-ovr" class="sal-val">-</span>
+    </div>
+    <div class="sal-row">
+      <span>Custo Salarial</span><span id="ps-sal" class="sal-val">-</span>
+    </div>
+    <div class="sal-row">
+      <span>Teto restante após pick</span><span id="ps-rest" class="sal-val">-</span>
+    </div>
+    <div class="sal-bar-wrap"><div class="sal-bar-fill" id="ps-bar" style="width:0%"></div></div>
+    <div class="pick-btns">
+      <button class="btn btn-ghost" onclick="fecharPickSheet()">Cancelar</button>
+      <button class="btn btn-primary" id="ps-confirmar" onclick="confirmarPick()">✔ Confirmar Pick</button>
     </div>
   </div>
+</section>
 
-  <div class="rodape">Era Uma Vez na Firmino · Temporada 01 · Sala Privada</div>
+<div class="rodape">
+  <div class="rodape-inner"><div class="dot"></div>Era Uma Vez na Firmino... · Football Manager</div>
 </div>
 
 <script>
-  var API  = 'https://script.google.com/macros/s/AKfycbwnjcMCR6p40E3oGEfRo0lfSX6J_hnma9xrrKniSXGbPKzSfCPrHClYgUneHybjt585pw/exec';
-  var S    = { roomId: null, userId: null, nomeSala: null, nick: null, dono: false, clubId: null, temClube: false };
-  var poll = null;
+// ═══════════════════════════════════════════════
+//  API URL — troque pelo URL do seu Web App
+// ═══════════════════════════════════════════════
+var API = 'https://script.google.com/macros/s/SEU_DEPLOYMENT_ID_AQUI/exec';
 
-  // ── FORMAS E DETALHES ──
-  var SHAPES = [
-    { id:'classico', label:'Clássico', type:'path',
-      d:'M 12,8 L 88,8 L 88,70 L 50,104 L 12,70 Z' },
-    { id:'medieval', label:'Medieval', type:'path',
-      d:'M 8,8 L 92,8 L 92,64 Q 92,96 50,107 Q 8,96 8,64 Z' },
-    { id:'moderno',  label:'Moderno',  type:'path',
-      d:'M 24,8 L 76,8 L 96,24 L 96,72 L 50,107 L 4,72 L 4,24 Z' },
-    { id:'brasao',   label:'Brasão',   type:'path',
-      d:'M 50,4 L 88,12 L 97,58 Q 90,96 50,108 Q 10,96 3,58 L 12,12 Z' },
-    { id:'redondo',  label:'Redondo',  type:'circle',  cx:50, cy:55, r:48 },
-    { id:'oval',     label:'Oval',     type:'ellipse', cx:50, cy:55, rx:44, ry:51 }
-  ];
+// ═══════════════════════════════════════════════
+//  ESTADO GLOBAL
+// ═══════════════════════════════════════════════
+var S = { roomId:null, userId:null, nomeSala:null, nick:null, dono:false, clubId:null, temClube:false };
+var D = {
+  ativo:false, ordem:[], pickAtual:0, rodadaAtual:1, totalRodadas:18,
+  currentClubId:null, isMinhaVez:false, meuClubeId:null, filaTurnos:[],
+  picksFeitos:{}, salarios:{}, salaryCap:200, jogadores:[], playerMap:{},
+  takenNomeReais:[], clubeMap:{}, selectedPlayer:null, posFilter:'TODOS', pollDraft:null
+};
+var TEMPO = { ativo:false, segundos:0, timer:null, quem:null };
+var SAVE_CODE_ATIVO = null;
 
-  var DETAILS = [
-    { id:'simples',  label:'Simples',  d: null },
-    { id:'faixa',    label:'Faixa',    d: 'M 0,38 L 100,38 L 100,65 L 0,65 Z' },
-    { id:'diagonal', label:'Diagonal', d: 'M 0,0 L 60,0 L 100,55 L 100,110 L 40,110 L 0,55 Z' },
-    { id:'metade',   label:'Metade',   d: 'M 50,0 L 100,0 L 100,110 L 50,110 Z' },
-    { id:'topo',     label:'Topo',     d: 'M 0,0 L 100,0 L 100,40 L 0,40 Z' }
-  ];
+// Escudos
+var SHAPES = {
+  classico: 'M50,10 L90,25 L90,65 Q90,85 50,95 Q10,85 10,65 L10,25 Z',
+  escudo_duplo: 'M50,10 L85,20 L85,60 Q85,80 50,92 Q15,80 15,60 L15,20 Z',
+  gothico: 'M50,8 L88,18 L88,55 Q88,75 50,90 Q12,75 12,55 L12,18 Z',
+  triangular: 'M50,8 L90,80 Q70,92 50,95 Q30,92 10,80 Z',
+  redondo: 'M50,10 A40,40 0 1,1 49.9,10 Z',
+  moderno: 'M50,8 L88,22 L88,62 L70,78 L50,90 L30,78 L12,62 L12,22 Z'
+};
+var DETAILS = {
+  simples: '',
+  faixa_h: '<line x1="10" y1="50" x2="90" y2="50" stroke="__ACC__" stroke-width="8" opacity=".7"/>',
+  faixa_v: '<line x1="50" y1="10" x2="50" y2="90" stroke="__ACC__" stroke-width="8" opacity=".7"/>',
+  chevron: '<polyline points="10,40 50,65 90,40" fill="none" stroke="__ACC__" stroke-width="7" opacity=".7"/>',
+  cruz: '<line x1="50" y1="12" x2="50" y2="90" stroke="__ACC__" stroke-width="6" opacity=".7"/><line x1="12" y1="50" x2="88" y2="50" stroke="__ACC__" stroke-width="6" opacity=".7"/>'
+};
 
-  var selectedShape  = 'classico';
-  var selectedDetail = 'simples';
+// ═══════════════════════════════════════════════
+//  NAVEGAÇÃO
+// ═══════════════════════════════════════════════
+function ir(id) {
+  document.querySelectorAll('section').forEach(function(s){ s.style.display='none'; });
+  document.getElementById(id).style.display='block';
+  document.body.classList.toggle('em-draft', id==='s-draft');
+}
 
-  // ── GERAÇÃO DE SVG DO ESCUDO ──
-  function shapeEl(sh, fill, stroke, sw) {
-    var f = ' fill="'+(fill||'none')+'"';
-    var s = stroke ? ' stroke="'+stroke+'" stroke-width="'+(sw||2)+'"' : '';
-    if (sh.type === 'circle')  return '<circle cx="'+sh.cx+'" cy="'+sh.cy+'" r="'+sh.r+'"'+f+s+'/>';
-    if (sh.type === 'ellipse') return '<ellipse cx="'+sh.cx+'" cy="'+sh.cy+'" rx="'+sh.rx+'" ry="'+sh.ry+'"'+f+s+'/>';
-    return '<path d="'+sh.d+'"'+f+s+'/>';
-  }
+// ═══════════════════════════════════════════════
+//  API HELPERS
+// ═══════════════════════════════════════════════
+function post(action, body, cb) {
+  body.action = action;
+  fetch(API, {
+    method:'POST', redirect:'follow',
+    headers:{'Content-Type':'text/plain'},
+    body: JSON.stringify(body)
+  })
+  .then(function(r){ return r.json(); })
+  .then(cb)
+  .catch(function(e){ cb({ success:false, error:'Erro de rede: '+e.message }); });
+}
 
-  function clipEl(sh) {
-    if (sh.type === 'circle')  return '<circle cx="'+sh.cx+'" cy="'+sh.cy+'" r="'+sh.r+'"/>';
-    if (sh.type === 'ellipse') return '<ellipse cx="'+sh.cx+'" cy="'+sh.cy+'" rx="'+sh.rx+'" ry="'+sh.ry+'"/>';
-    return '<path d="'+sh.d+'"/>';
-  }
+function get(params, cb) {
+  var qs = Object.keys(params).map(function(k){ return k+'='+encodeURIComponent(params[k]); }).join('&');
+  fetch(API+'?'+qs, { method:'GET', redirect:'follow' })
+  .then(function(r){ return r.json(); })
+  .then(cb)
+  .catch(function(e){ cb({ success:false, error:'Erro de rede: '+e.message }); });
+}
 
-  function gerarSVG(shapeId, detailId, bgColor, textColor, accentColor, iniciais, uid, w, h, fs) {
-    var sh  = SHAPES.find(function(s){return s.id===shapeId;}) || SHAPES[0];
-    var det = DETAILS.find(function(d){return d.id===detailId;}) || DETAILS[0];
-    var cid = 'c' + uid.replace(/[^a-zA-Z0-9]/g,'');
-    w = w||100; h = h||110; fs = fs||28;
+// ═══════════════════════════════════════════════
+//  CRIAR SALA
+// ═══════════════════════════════════════════════
+function criarSala() {
+  var nome = v('c-nome'), senha = v('c-senha'), nick = v('c-nick'), maxH = v('c-max');
+  if (!nome || !senha || !nick) return msg('c-msg','erro','Preencha todos os campos.');
+  post('createRoom', { nomeSala:nome, senha:senha, nomeTecnico:nick, maxHumanos:parseInt(maxH)||10 }, function(r) {
+    if (!r.success) return msg('c-msg','erro',r.error);
+    S.roomId=r.roomId; S.userId=r.userId; S.nomeSala=r.nomeSala; S.nick=r.nomeTecnico; S.dono=true;
+    entrarNoLobby();
+  });
+}
 
-    var defs = '<defs><clipPath id="'+cid+'">'+clipEl(sh)+'</clipPath></defs>';
-    var bg   = shapeEl(sh, bgColor, null, 0);
-    var ov   = det.d ? '<path d="'+det.d+'" fill="'+accentColor+'" opacity="0.38" clip-path="url(#'+cid+')"/>' : '';
-    var bord = shapeEl(sh, 'none', accentColor, 2.5);
-    var txt  = iniciais
-      ? '<text x="50" y="59" text-anchor="middle" dominant-baseline="central" font-family="\'Bebas Neue\',\'Arial Black\',sans-serif" font-size="'+fs+'" font-weight="bold" fill="'+textColor+'" letter-spacing="2">'+iniciais+'</text>'
-      : '';
-    return '<svg viewBox="0 0 100 110" width="'+w+'" height="'+h+'" xmlns="http://www.w3.org/2000/svg">'+defs+bg+ov+bord+txt+'</svg>';
-  }
+function entrarSala() {
+  var room = v('e-room').toUpperCase(), senha = v('e-senha'), nick = v('e-nick');
+  if (!room || !senha || !nick) return msg('e-msg','erro','Preencha todos os campos.');
+  post('joinRoom', { roomId:room, senha:senha, nomeTecnico:nick }, function(r) {
+    if (!r.success) return msg('e-msg','erro',r.error);
+    S.roomId=r.roomId; S.userId=r.userId; S.nomeSala=r.nomeSala; S.nick=r.nomeTecnico; S.dono=r.isOwner||false;
+    entrarNoLobby();
+  });
+}
 
-  // ── RENDERIZAR SELETORES ──
-  function renderShapeGrid() {
-    var html = '<div class="shape-grid">';
-    SHAPES.forEach(function(sh) {
-      var svg = gerarSVG(sh.id, 'simples', '#162b1a', '', '#4ade80', '', 'shp'+sh.id, 48, 53, 0);
-      html += '<div class="shape-btn'+(selectedShape===sh.id?' selected':'')+'" onclick="selecionarShape(\''+sh.id+'\')">' +
-              svg + '<span>'+sh.label+'</span></div>';
-    });
-    document.getElementById('shape-grid-container').innerHTML = html + '</div>';
-  }
+// ═══════════════════════════════════════════════
+//  RETOMAR PARTIDA
+// ═══════════════════════════════════════════════
+function setModoRetomar(modo) {
+  var isHost = modo === 'host';
+  document.getElementById('btn-modo-host').classList.toggle('ativo', isHost);
+  document.getElementById('btn-modo-jogador').classList.toggle('ativo', !isHost);
+  document.getElementById('form-ret-host').style.display = isHost ? 'block' : 'none';
+  document.getElementById('form-ret-jogador').style.display = isHost ? 'none' : 'block';
+  msg('r-msg','','');
+}
 
-  function renderDetailGrid() {
-    var bg  = document.getElementById('f-cor-fundo')   ? document.getElementById('f-cor-fundo').value   : '#1a3a5c';
-    var acc = document.getElementById('f-cor-detalhe') ? document.getElementById('f-cor-detalhe').value : '#ffffff';
-    var html = '<div class="detail-grid">';
-    DETAILS.forEach(function(det) {
-      var svg = gerarSVG(selectedShape, det.id, bg, '', acc, '', 'det'+det.id, 40, 44, 0);
-      html += '<div class="detail-btn'+(selectedDetail===det.id?' selected':'')+'" onclick="selecionarDetail(\''+det.id+'\')">' +
-              svg + '<span>'+det.label+'</span></div>';
-    });
-    document.getElementById('detail-grid-container').innerHTML = html + '</div>';
-  }
+function buscarSave() {
+  var code = v('rh-save').trim().toUpperCase();
+  if (!code) return msg('r-msg','erro','Digite o código do save.');
+  document.getElementById('save-info-box').style.display = 'none';
+  get({ action:'getSaveInfo', saveCode:code }, function(r) {
+    if (!r.success) return msg('r-msg','erro',r.error);
+    document.getElementById('si-sala').textContent  = r.nomeSala;
+    document.getElementById('si-temp').textContent  = 'Temporada '+(r.temporada||1);
+    document.getElementById('si-draft').textContent = r.draftStatus === 'ativo' ? 'Em andamento (pick '+r.pickAtual+')' : r.draftStatus === 'concluido' ? 'Concluído' : 'Não iniciado';
+    document.getElementById('si-times').textContent = r.totalTimes + ' times';
+    document.getElementById('si-data').textContent  = r.savedAt ? new Date(r.savedAt).toLocaleString('pt-BR') : '-';
+    document.getElementById('save-info-box').style.display = 'block';
+    msg('r-msg','ok','Save encontrado! Preencha os campos abaixo para criar a sala.');
+  });
+}
 
-  function selecionarShape(id) {
-    selectedShape = id;
-    renderShapeGrid();
-    atualizarPreview();
-  }
+function criarSalaDoSave() {
+  var saveCode = v('rh-save').trim().toUpperCase();
+  var nome     = v('rh-nome'), senha = v('rh-senha');
+  var teamCode = v('rh-team').trim(), nick = v('rh-nick');
+  if (!saveCode||!nome||!senha||!teamCode||!nick) return msg('r-msg','erro','Preencha todos os campos.');
+  post('createRoomFromSave', { saveCode:saveCode, nomeSala:nome, senha:senha, teamCode:teamCode, nomeTecnico:nick }, function(r) {
+    if (!r.success) return msg('r-msg','erro',r.error);
+    S.roomId=r.roomId; S.userId=r.userId; S.nomeSala=r.nomeSala; S.nick=r.nomeTecnico; S.dono=true;
+    msg('r-msg','ok','Sala criada! Código: '+r.roomId+'. Aguardando jogadores...');
+    setTimeout(function(){ entrarNoLobby(); }, 1500);
+  });
+}
 
-  function selecionarDetail(id) {
-    selectedDetail = id;
-    atualizarPreview();
-  }
+function entrarSalaDoSave() {
+  var room     = v('rj-room').trim().toUpperCase();
+  var senha    = v('rj-senha'), teamCode = v('rj-team').trim();
+  if (!room||!senha||!teamCode) return msg('r-msg','erro','Preencha todos os campos.');
+  post('joinRoomFromSave', { roomId:room, senha:senha, teamCode:teamCode }, function(r) {
+    if (!r.success) return msg('r-msg','erro',r.error);
+    S.roomId=r.roomId; S.userId=r.userId; S.nomeSala=r.nomeSala; S.nick=r.nomeTecnico; S.dono=r.isOwner||false;
+    entrarNoLobby();
+  });
+}
 
-  // ── NAVEGAÇÃO ──
-  function ir(id) {
-    document.querySelectorAll('.screen').forEach(function(s) { s.classList.remove('active'); });
-    document.getElementById(id).classList.add('active');
-    limparMsgs();
-  }
-  function limparMsgs() {
-    document.querySelectorAll('.msg').forEach(function(m) { m.className = 'msg'; m.textContent = ''; });
-  }
-  function msg(id, txt, tipo) {
-    var el = document.getElementById(id);
-    el.className = 'msg ' + tipo + ' show';
-    el.textContent = txt;
-  }
-  function loading(btnId, spinId, on) {
-    var b = document.getElementById(btnId), sp = document.getElementById(spinId);
-    b.disabled = on; b.style.display = on ? 'none' : 'block';
-    sp.className = on ? 'spin show' : 'spin';
-  }
+// ═══════════════════════════════════════════════
+//  LOBBY
+// ═══════════════════════════════════════════════
+var pollLobby = null;
+function entrarNoLobby() {
+  ir('s-lobby');
+  document.getElementById('lb-code').textContent = S.roomId;
+  document.getElementById('lb-team-code').textContent = S.userId;
+  if (pollLobby) clearInterval(pollLobby);
+  pollAgora();
+  pollLobby = setInterval(pollAgora, 5000);
+}
 
-  // ── API ──
-  function post(data) {
-    return fetch(API, { method: 'POST', headers: { 'Content-Type': 'text/plain' },
-      body: JSON.stringify(data), redirect: 'follow' }).then(function(r) { return r.json(); });
-  }
-  function get(params) {
-    var qs = Object.keys(params).map(function(k) {
-      return encodeURIComponent(k) + '=' + encodeURIComponent(params[k]);
-    }).join('&');
-    return fetch(API + '?' + qs, { redirect: 'follow' }).then(function(r) { return r.json(); });
-  }
+function pollAgora() {
+  get({ action:'getRoomState', roomId:S.roomId, userId:S.userId }, function(r) {
+    if (!r.success) return;
 
-  // ── CRIAR SALA ──
-  function criarSala() {
-    var nome = v('f-nome-sala'), senha = document.getElementById('f-senha-criar').value;
-    var nick = v('f-tecnico-criar'), max = document.getElementById('f-max').value;
-    if (!nome)            { msg('msg-criar','Informe o nome da sala.','erro'); return; }
-    if (senha.length < 3) { msg('msg-criar','Senha precisa ter 3+ caracteres.','erro'); return; }
-    if (!nick)            { msg('msg-criar','Informe seu apelido de técnico.','erro'); return; }
-    loading('btn-criar','spin-criar',true);
-    post({ action:'createRoom', nomeSala:nome, senha:senha, nomeTecnico:nick, maxHumanos:max })
-      .then(function(res) {
-        loading('btn-criar','spin-criar',false);
-        if (res.success) { sessao(res); irParaClube(); }
-        else msg('msg-criar', res.error || 'Erro ao criar sala.', 'erro');
-      }).catch(function() { loading('btn-criar','spin-criar',false); msg('msg-criar','Falha na conexão.','erro'); });
-  }
+    // TEMPO BANNER
+    handleTempoBanner(r.sala.tempoSolicitado);
 
-  // ── ENTRAR NA SALA ──
-  function entrarSala() {
-    var codigo = v('f-codigo'), senha = document.getElementById('f-senha-entrar').value;
-    var nick   = v('f-tecnico-entrar');
-    if (codigo.length !== 6) { msg('msg-entrar','Código tem 6 caracteres.','erro'); return; }
-    if (!senha)              { msg('msg-entrar','Informe a senha.','erro'); return; }
-    if (!nick)               { msg('msg-entrar','Informe seu apelido.','erro'); return; }
-    loading('btn-entrar','spin-entrar',true);
-    post({ action:'joinRoom', roomId:codigo, senha:senha, nomeTecnico:nick })
-      .then(function(res) {
-        loading('btn-entrar','spin-entrar',false);
-        if (res.success) { sessao(res); irParaClube(); }
-        else msg('msg-entrar', res.error || 'Erro ao entrar na sala.', 'erro');
-      }).catch(function() { loading('btn-entrar','spin-entrar',false); msg('msg-entrar','Falha na conexão.','erro'); });
-  }
+    var sala = r.sala;
+    S.dono = r.usuario && r.usuario.isOwner;
 
-  function sessao(res) {
-    S.roomId = res.roomId; S.userId = res.userId;
-    S.nomeSala = res.nomeSala; S.nick = res.nomeTecnico; S.dono = !!res.isOwner;
-  }
-
-  // ── TELA CLUBE ──
-  function irParaClube() {
-    ir('s-clube');
-    renderShapeGrid();
-    atualizarPreview();
-  }
-
-  function editarClube() { stopPoll(); irParaClube(); }
-
-  // ── PREVIEW AO VIVO ──
-  function atualizarPreview() {
-    var nome    = document.getElementById('f-clube-nome').value.trim() || 'Meu Clube';
-    var fundo   = document.getElementById('f-cor-fundo').value;
-    var texto   = document.getElementById('f-cor-texto').value;
-    var detalhe = document.getElementById('f-cor-detalhe').value;
-    var iniciais = gerarIniciaisJS(nome);
-
-    document.getElementById('prev-escudo').innerHTML =
-      gerarSVG(selectedShape, selectedDetail, fundo, texto, detalhe, iniciais, 'prev', 100, 110, 28);
-    document.getElementById('prev-nome').textContent = nome;
-
-    var ratio = contrastRatioJS(fundo, texto);
-    var badge = document.getElementById('prev-contraste');
-    if (ratio >= 3) {
-      badge.className = 'contraste-badge contraste-ok';
-      badge.textContent = 'Contraste OK (' + ratio.toFixed(1) + ':1)';
-    } else {
-      badge.className = 'contraste-badge contraste-ruim';
-      badge.textContent = 'Contraste ruim (' + ratio.toFixed(1) + ':1) — ajuste as cores';
+    // Se pausa detectada e código do save disponível
+    if (sala.gameStatus === 'pausado' && sala.saveCode && sala.saveCode !== SAVE_CODE_ATIVO) {
+      SAVE_CODE_ATIVO = sala.saveCode;
+      mostrarSaveModal(sala.saveCode);
     }
 
-    renderDetailGrid(); // sincroniza detalhes com as cores atuais
-  }
-
-  // ── SALVAR CLUBE ──
-  function salvarClube() {
-    var nome    = v('f-clube-nome');
-    var fundo   = document.getElementById('f-cor-fundo').value;
-    var texto   = document.getElementById('f-cor-texto').value;
-    var detalhe = document.getElementById('f-cor-detalhe').value;
-
-    if (!nome) { msg('msg-clube','Informe o nome do clube.','erro'); return; }
-
-    var ratio = contrastRatioJS(fundo, texto);
-    if (ratio < 3) { msg('msg-clube','Contraste insuficiente. Ajuste as cores do escudo.','erro'); return; }
-
-    loading('btn-clube','spin-clube',true);
-    post({ action:'saveClubIdentity', roomId:S.roomId, userId:S.userId,
-           nomeClube:nome, primaryColor:fundo, textColor:texto, accentColor:detalhe,
-           shapeId: selectedShape, detailId: selectedDetail })
-      .then(function(res) {
-        loading('btn-clube','spin-clube',false);
-        if (res.success) {
-          S.clubId   = res.clubId;
-          S.temClube = true;
-          abrirLobby();
-        } else {
-          msg('msg-clube', res.error || 'Erro ao salvar clube.', 'erro');
-        }
-      }).catch(function() { loading('btn-clube','spin-clube',false); msg('msg-clube','Falha na conexão.','erro'); });
-  }
-
-  // ── LOBBY ──
-  function abrirLobby() {
-    document.getElementById('lby-nome-sala').textContent = S.nomeSala;
-    document.getElementById('lby-codigo').textContent    = S.roomId;
-    document.getElementById('lby-meu-nome').textContent  = S.nick;
-    if (S.dono) document.getElementById('ctrl-dono').style.display = 'block';
-    ir('s-lobby');
-    pollAgora();
-    poll = setInterval(pollAgora, 5000);
-  }
-
-  function sairLobby() {
-    stopPoll();
-    S = { roomId:null, userId:null, nomeSala:null, nick:null, dono:false, clubId:null, temClube:false };
-    ir('s-home');
-  }
-
-  function stopPoll() { if (poll) { clearInterval(poll); poll = null; } }
-
-  function pollAgora() {
-    if (!S.roomId || !S.userId) return;
-    get({ action:'getRoomState', roomId:S.roomId, userId:S.userId })
-      .then(function(res) {
-        if (!res.success) {
-          if (res.error && res.error.indexOf('removido') !== -1) {
-            stopPoll();
-            S = { roomId:null, userId:null, nomeSala:null, nick:null, dono:false, clubId:null, temClube:false };
-            ir('s-home');
-            msg('msg-home', 'Você foi removido da sala pelo dono.', 'aviso');
-          }
-          return;
-        }
-        renderLobby(res.participantes, res.clubes, res.sala.ownerUserId);
-        atualizarBtnClube(res.clubes);
-      }).catch(function() {});
-  }
-
-  function expulsarParticipante(targetUserId) {
-    if (!confirm('Remover este participante?\n\nEle poderá entrar novamente com o mesmo código e recriar o clube normalmente.')) return;
-    post({ action:'kickParticipant', roomId:S.roomId, userId:S.userId, targetUserId:targetUserId })
-      .then(function(res) {
-        if (!res.success) msg('msg-lobby', res.error || 'Erro ao remover participante.', 'erro');
-      }).catch(function() {});
-  }
-
-  function atualizarBtnClube(clubes) {
-    var meuClube = clubes.find(function(c) { return c.userId === S.userId; });
-    var btnTxt   = document.getElementById('lby-btn-clube-txt');
-    var miniWrap = document.getElementById('lby-mini-wrap');
-    if (meuClube) {
-      btnTxt.textContent = meuClube.nomeClube;
-      miniWrap.innerHTML = gerarSVG(
-        meuClube.shapeId || 'classico', meuClube.detailId || 'simples',
-        meuClube.primaryColor, meuClube.textColor, meuClube.accentColor || '#ffffff',
-        meuClube.iniciais, 'btn', 28, 31, 10
-      );
-    } else {
-      btnTxt.textContent = 'Criar meu clube';
-      miniWrap.innerHTML = '<span style="font-size:20px;color:var(--text2);">⬡</span>';
-    }
-  }
-
-  function renderLobby(participantes, clubes, ownerId) {
-    var ul = document.getElementById('lby-lista');
-    ul.innerHTML = '';
-    if (!participantes || !participantes.length) {
-      ul.innerHTML = '<li class="p-card"><span style="color:var(--text2)">Nenhum participante.</span></li>';
+    // Redireciona para draft
+    if (sala.status === 'draft' && document.getElementById('s-lobby').style.display !== 'none') {
+      if (pollLobby) clearInterval(pollLobby);
+      iniciarTelaDraft();
       return;
     }
-    participantes.forEach(function(p) {
-      var clube = clubes.find(function(c) { return c.userId === p.userId; });
-      var li    = document.createElement('li');
-      li.className = 'p-card' + (clube ? ' tem-clube' : '');
 
-      var escHtml;
-      if (clube) {
-        var svgMini = gerarSVG(
-          clube.shapeId || 'classico', clube.detailId || 'simples',
-          clube.primaryColor, clube.textColor, clube.accentColor || '#ffffff',
-          clube.iniciais, clube.clubId || p.userId, 44, 48, 14
-        );
-        escHtml = '<div class="p-escudo-wrap">' + svgMini + '</div>';
-      } else {
-        escHtml = '<div class="p-escudo-vazio">?</div>';
-      }
-
-      var clubeNome   = clube ? esc(clube.nomeClube) : '<span style="color:var(--text2)">Sem clube</span>';
-      var tecnicoNome = esc(p.nomeTecnico);
-
-      var tags = '';
-      if (p.userId === ownerId)  tags += '<span class="tag tag-dono">Dono</span>';
-      if (p.userId === S.userId) tags += '<span class="tag tag-voce">Você</span>';
-      tags += clube
-        ? '<span class="tag tag-ok">' + statusLabel(clube.statusClube) + '</span>'
-        : '<span class="tag tag-sem">Sem clube</span>';
-
-      var kickBtn = (S.dono && p.userId !== S.userId)
-        ? '<button class="btn-kick" title="Remover da sala" onclick="expulsarParticipante(\''+p.userId+'\')">✕</button>'
-        : '';
-
-      li.innerHTML = escHtml +
-        '<div class="p-info"><div class="p-clube-nome">' + clubeNome + '</div>' +
-        '<div class="p-tecnico-nome">' + tecnicoNome + '</div></div>' +
-        '<div class="p-tags">' + tags + '</div>' + kickBtn;
-      ul.appendChild(li);
-    });
-  }
-
-  function statusLabel(s) {
-    return { identidade_ok:'Clube criado', montando_elenco:'Montando elenco',
-             time_valido:'Time válido', pronto:'Pronto!' }[s] || s;
-  }
-
-  // ── UTILITÁRIOS JS DE COR ──
-  function luminanceJS(hex) {
-    var r = parseInt(hex.slice(1,3),16)/255, g = parseInt(hex.slice(3,5),16)/255, b = parseInt(hex.slice(5,7),16)/255;
-    r = r<=0.03928 ? r/12.92 : Math.pow((r+0.055)/1.055,2.4);
-    g = g<=0.03928 ? g/12.92 : Math.pow((g+0.055)/1.055,2.4);
-    b = b<=0.03928 ? b/12.92 : Math.pow((b+0.055)/1.055,2.4);
-    return 0.2126*r + 0.7152*g + 0.0722*b;
-  }
-  function contrastRatioJS(h1, h2) {
-    var l1 = luminanceJS(h1), l2 = luminanceJS(h2);
-    return (Math.max(l1,l2)+0.05) / (Math.min(l1,l2)+0.05);
-  }
-  function gerarIniciaisJS(nome) {
-    return nome.trim().split(/\s+/).map(function(p){return p[0];}).join('').toUpperCase().substring(0,3) || '?';
-  }
-
-  function v(id)  { return document.getElementById(id).value.trim(); }
-  function esc(s) { var d=document.createElement('div'); d.appendChild(document.createTextNode(s||'')); return d.innerHTML; }
-
-  // ── INIT ──
-  window.addEventListener('DOMContentLoaded', function() {
-    renderShapeGrid();
-    atualizarPreview();
-  });
-</script>
-</body>
-</html><!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Era Uma Vez na Firmino...</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
-  <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-    :root {
-      --campo:   #0b1f10;
-      --campo2:  #0f2914;
-      --verde:   #4ade80;
-      --verde2:  #16a34a;
-      --amarelo: #fbbf24;
-      --branco:  #f9fafb;
-      --c1:      #1f2d22;
-      --c2:      #2d3f30;
-      --c3:      #3d5540;
-      --text:    #e8f5ea;
-      --text2:   #9ab89e;
-      --erro:    #f87171;
-      --r:       10px;
-      --dur:     .2s;
+    // Redireciona para draft se draft já estava ativo ao entrar
+    if ((sala.status === 'draft' || sala.draftStatus === 'concluido') &&
+        document.getElementById('s-draft').style.display === 'none' &&
+        document.getElementById('s-lobby').style.display === 'none') {
+      iniciarTelaDraft(); return;
     }
 
-    html, body { min-height: 100%; font-family: 'Inter', sans-serif; background: var(--campo); color: var(--text); }
-
-    body::before {
-      content: ''; position: fixed; inset: 0; pointer-events: none; z-index: 0;
-      background-image:
-        repeating-linear-gradient(0deg, transparent, transparent 58px, rgba(255,255,255,.018) 58px, rgba(255,255,255,.018) 60px),
-        repeating-linear-gradient(90deg, transparent, transparent 58px, rgba(255,255,255,.012) 58px, rgba(255,255,255,.012) 60px);
-    }
-    body::after {
-      content: ''; position: fixed; top: 50%; left: 50%; transform: translate(-50%,-50%);
-      width: 520px; height: 520px; border-radius: 50%;
-      border: 1px solid rgba(255,255,255,.04); pointer-events: none; z-index: 0;
-    }
-
-    #app { position: relative; z-index: 1; min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 32px 16px 48px; }
-
-    /* ── LOGO ── */
-    .logo-area { text-align: center; margin-bottom: 32px; user-select: none; }
-    .logo-bola { font-size: 40px; margin-bottom: 8px; filter: drop-shadow(0 0 24px rgba(74,222,128,.35)); }
-    .logo-title { font-family: 'Bebas Neue', sans-serif; font-size: clamp(36px,9vw,66px); letter-spacing: 2px; line-height: .95; color: var(--branco); }
-    .logo-title span { color: var(--verde); display: block; }
-    .logo-sub { font-size: 12px; font-weight: 500; letter-spacing: 3px; text-transform: uppercase; color: var(--text2); margin-top: 10px; }
-    .pill { display: inline-flex; align-items: center; gap: 6px; background: rgba(74,222,128,.12); border: 1px solid rgba(74,222,128,.25); border-radius: 99px; padding: 4px 12px; font-size: 11px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; color: var(--verde); margin-top: 12px; }
-    .pill-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--verde); animation: pulso 2s ease infinite; }
-    @keyframes pulso { 0%,100%{opacity:1} 50%{opacity:.3} }
-
-    /* ── TELAS ── */
-    .screen { display: none; width: 100%; max-width: 440px; animation: up .22s ease; }
-    .screen.active { display: block; }
-    @keyframes up { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
-
-    /* ── CARD ── */
-    .card { background: var(--c1); border: 1px solid var(--c2); border-radius: var(--r); padding: 28px; box-shadow: 0 8px 40px rgba(0,0,0,.4); }
-    .card-label { font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--text2); margin-bottom: 20px; }
-
-    /* ── BOTÕES HOME ── */
-    .home-btns { display: flex; flex-direction: column; gap: 12px; }
-    .tagline { font-size: 14px; color: var(--text2); text-align: center; line-height: 1.65; margin-bottom: 24px; }
-    .features { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-bottom: 28px; }
-    .feat { background: var(--c1); border: 1px solid var(--c2); border-radius: 99px; padding: 5px 12px; font-size: 12px; font-weight: 600; color: var(--text2); }
-
-    .btn-main { display: flex; align-items: center; justify-content: space-between; width: 100%; padding: 18px 22px; border-radius: var(--r); border: none; cursor: pointer; font-family: 'Inter', sans-serif; font-weight: 700; font-size: 15px; transition: all var(--dur); }
-    .btn-main .arr { font-size: 18px; transition: transform var(--dur); }
-    .btn-main:hover .arr { transform: translateX(4px); }
-    .btn-criar  { background: var(--verde); color: #0b1f10; }
-    .btn-criar:hover { background: #6ee79a; }
-    .btn-entrar { background: var(--c2); color: var(--text); border: 1px solid var(--c3); }
-    .btn-entrar:hover { background: var(--c3); }
-
-    /* ── BOTÕES AÇÃO ── */
-    .btn-acao { display: block; width: 100%; padding: 15px; border: none; border-radius: var(--r); background: var(--verde); color: #0b1f10; font-family: 'Inter', sans-serif; font-weight: 700; font-size: 15px; cursor: pointer; transition: background var(--dur); }
-    .btn-acao:hover:not(:disabled) { background: #6ee79a; }
-    .btn-acao:disabled { opacity: .4; cursor: not-allowed; }
-    .btn-ghost { display: block; width: 100%; padding: 12px; border: 1px solid var(--c3); border-radius: var(--r); background: transparent; color: var(--text2); font-family: 'Inter', sans-serif; font-size: 13px; font-weight: 500; cursor: pointer; transition: all var(--dur); margin-top: 8px; }
-    .btn-ghost:hover { color: var(--text); border-color: var(--text2); }
-
-    /* ── INPUTS ── */
-    .field { margin-bottom: 16px; }
-    .field label { display: block; font-size: 12px; font-weight: 600; letter-spacing: .5px; color: var(--text2); margin-bottom: 7px; }
-    .field input, .field select { display: block; width: 100%; background: var(--campo2); border: 1.5px solid var(--c2); border-radius: 8px; color: var(--text); font-family: 'Inter', sans-serif; font-size: 15px; font-weight: 500; padding: 12px 14px; outline: none; transition: border-color var(--dur), box-shadow var(--dur); }
-    .field input:focus, .field select:focus { border-color: var(--verde2); box-shadow: 0 0 0 3px rgba(74,222,128,.15); }
-    .field input::placeholder { color: var(--c3); }
-    .field input.code-input { font-size: 24px; font-weight: 700; letter-spacing: 8px; text-transform: uppercase; text-align: center; }
-
-    /* ── COLOR PICKER ROW ── */
-    .color-row { display: flex; gap: 12px; }
-    .color-row .field { flex: 1; }
-    .color-input-wrap { position: relative; }
-    .color-input-wrap input[type=color] { width: 100%; height: 48px; padding: 4px; border-radius: 8px; border: 1.5px solid var(--c2); background: var(--campo2); cursor: pointer; }
-    .color-input-wrap input[type=color]:focus { border-color: var(--verde2); }
-
-    /* ── ESCUDO PREVIEW ── */
-    .escudo-preview-wrap { display: flex; flex-direction: column; align-items: center; margin-bottom: 20px; gap: 10px; }
-    #prev-escudo { display: flex; align-items: center; justify-content: center; }
-    .escudo-nome-preview { font-size: 14px; font-weight: 700; color: var(--text2); text-align: center; max-width: 200px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .contraste-badge { font-size: 11px; font-weight: 700; padding: 3px 9px; border-radius: 99px; }
-    .contraste-ok   { background: rgba(74,222,128,.15); color: var(--verde); border: 1px solid rgba(74,222,128,.3); }
-    .contraste-ruim { background: rgba(248,113,113,.15); color: var(--erro); border: 1px solid rgba(248,113,113,.3); }
-
-    /* ── SELETOR DE FORMA / DETALHE ── */
-    .selector-label { font-size: 10px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--text2); margin-bottom: 8px; }
-
-    .shape-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 7px; }
-    .shape-btn {
-      display: flex; flex-direction: column; align-items: center; gap: 5px;
-      padding: 10px 4px 7px; border: 1.5px solid var(--c2); border-radius: 8px;
-      background: var(--campo2); cursor: pointer; transition: all var(--dur);
-    }
-    .shape-btn:hover { border-color: var(--c3); background: rgba(255,255,255,.02); }
-    .shape-btn.selected { border-color: var(--verde); background: rgba(74,222,128,.07); }
-    .shape-btn span { font-size: 10px; font-weight: 700; color: var(--text2); text-transform: uppercase; letter-spacing: .5px; }
-    .shape-btn.selected span { color: var(--verde); }
-
-    .detail-grid { display: grid; grid-template-columns: repeat(5,1fr); gap: 6px; }
-    .detail-btn {
-      display: flex; flex-direction: column; align-items: center; gap: 4px;
-      padding: 8px 3px 6px; border: 1.5px solid var(--c2); border-radius: 8px;
-      background: var(--campo2); cursor: pointer; transition: all var(--dur);
-    }
-    .detail-btn:hover { border-color: var(--c3); }
-    .detail-btn.selected { border-color: var(--verde); background: rgba(74,222,128,.07); }
-    .detail-btn span { font-size: 9px; font-weight: 700; color: var(--text2); text-transform: uppercase; letter-spacing: .3px; text-align: center; line-height: 1.2; }
-    .detail-btn.selected span { color: var(--verde); }
-
-    /* ── MSGS ── */
-    .msg { display: none; font-size: 13px; font-weight: 500; padding: 11px 14px; border-radius: 8px; margin-bottom: 16px; line-height: 1.45; }
-    .msg.show  { display: block; }
-    .msg.erro  { background: rgba(248,113,113,.12); border: 1px solid rgba(248,113,113,.3); color: var(--erro); }
-    .msg.ok    { background: rgba(74,222,128,.1);   border: 1px solid rgba(74,222,128,.3);  color: var(--verde); }
-    .msg.aviso { background: rgba(251,191,36,.1);   border: 1px solid rgba(251,191,36,.3);  color: var(--amarelo); }
-
-    /* ── SPINNER ── */
-    .spin { display: none; width: 20px; height: 20px; border: 2px solid rgba(74,222,128,.25); border-top-color: var(--verde); border-radius: 50%; animation: girar .7s linear infinite; margin: 0 auto; }
-    .spin.show { display: block; }
-    @keyframes girar { to{transform:rotate(360deg)} }
-
-    /* ── DIVIDER ── */
-    .divider { border: none; border-top: 1px solid var(--c2); margin: 18px 0; }
-
-    /* ── LOBBY ── */
-    .sala-code-box { background: var(--campo2); border: 1.5px solid var(--c2); border-radius: var(--r); padding: 20px 16px; text-align: center; margin-bottom: 20px; }
-    .sala-code-lbl { font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--text2); margin-bottom: 8px; }
-    .sala-code-val { font-family: 'Bebas Neue', sans-serif; font-size: 48px; letter-spacing: 10px; color: var(--verde); filter: drop-shadow(0 0 12px rgba(74,222,128,.35)); line-height: 1; }
-    .sala-code-hint { font-size: 11px; color: var(--text2); margin-top: 6px; }
-
-    .p-titulo { font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--text2); margin-bottom: 10px; }
-    .p-lista  { list-style: none; }
-
-    .p-card { display: flex; align-items: center; gap: 12px; padding: 12px 14px; background: var(--campo2); border: 1px solid var(--c2); border-radius: 8px; margin-bottom: 8px; transition: border-color var(--dur); }
-    .p-card.tem-clube { border-color: rgba(74,222,128,.2); }
-    .p-escudo-wrap { width: 44px; height: 48px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
-    .p-escudo-vazio { width: 44px; height: 48px; flex-shrink: 0; background: var(--c2); border-radius: 6px; display: flex; align-items: center; justify-content: center; color: var(--text2); font-size: 18px; font-weight: 700; }
-
-    .p-info { flex: 1; min-width: 0; }
-    .p-clube-nome { font-size: 14px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .p-tecnico-nome { font-size: 11px; color: var(--text2); margin-top: 1px; }
-
-    .p-tags { display: flex; gap: 5px; flex-wrap: wrap; justify-content: flex-end; }
-    .tag { font-size: 10px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; padding: 3px 7px; border-radius: 4px; }
-    .tag-dono   { background: rgba(251,191,36,.15); color: var(--amarelo); }
-    .tag-voce   { background: rgba(255,255,255,.07); color: var(--text2); }
-    .tag-ok     { background: rgba(74,222,128,.12); color: var(--verde); }
-    .tag-sem    { background: rgba(248,113,113,.12); color: var(--erro); }
-
-    .lobby-meu-nome { font-size: 12px; color: var(--text2); text-align: center; margin-top: 14px; }
-    .lobby-meu-nome strong { color: var(--verde); }
-
-    .btn-edit-clube { display: flex; align-items: center; gap: 10px; width: 100%; padding: 11px 14px; border: 1px dashed var(--verde2); border-radius: var(--r); background: rgba(74,222,128,.05); color: var(--verde); font-family: 'Inter', sans-serif; font-size: 13px; font-weight: 600; cursor: pointer; transition: all var(--dur); margin-bottom: 16px; }
-    .btn-edit-clube:hover { background: rgba(74,222,128,.12); }
-
-    .btn-kick {
-      width: 26px; height: 26px; flex-shrink: 0;
-      border: 1px solid rgba(248,113,113,.25); border-radius: 5px;
-      background: rgba(248,113,113,.07); color: var(--erro);
-      font-size: 11px; font-weight: 700; cursor: pointer;
-      display: flex; align-items: center; justify-content: center;
-      transition: all var(--dur); font-family: 'Inter', sans-serif;
-      padding: 0;
-    }
-    .btn-kick:hover { background: rgba(248,113,113,.22); border-color: var(--erro); }
-    .btn-edit-clube .mini-wrap { width: 28px; height: 31px; flex-shrink: 0; display: flex; align-items: center; }
-    .btn-edit-clube .edit-icon { margin-left: auto; font-size: 14px; opacity: .7; }
-
-    .rodape { margin-top: 40px; font-size: 11px; font-weight: 500; letter-spacing: 1.5px; text-transform: uppercase; color: var(--c3); text-align: center; }
-
-    @media (max-width: 460px) {
-      .logo-title { font-size: 36px; }
-      .sala-code-val { font-size: 36px; letter-spacing: 6px; }
-      .card { padding: 18px; }
-      .detail-grid { gap: 4px; }
-    }
-  </style>
-</head>
-<body>
-<div id="app">
-
-  <div class="logo-area">
-    <div class="logo-bola">⚽</div>
-    <div class="logo-title">Era Uma Vez<span>na Firmino<span style="color:var(--text2)">...</span></span></div>
-    <div class="logo-sub">um jogo de manager entre amigos</div>
-    <div class="pill"><span class="pill-dot"></span>Sala Privada</div>
-  </div>
-
-  <!-- ── HOME ── -->
-  <div id="s-home" class="screen active">
-    <div class="features">
-      <span class="feat">⚡ Draft ao vivo</span>
-      <span class="feat">🏆 Ligas e copas</span>
-      <span class="feat">📈 Salary cap</span>
-      <span class="feat">🔁 Promoção e queda</span>
-    </div>
-    <div id="msg-home" class="msg"></div>
-    <div class="home-btns">
-      <button class="btn-main btn-criar" onclick="ir('s-criar')"><span>Criar Sala</span><span class="arr">→</span></button>
-      <button class="btn-main btn-entrar" onclick="ir('s-entrar')"><span>Entrar na Sala</span><span class="arr">→</span></button>
-    </div>
-  </div>
-
-  <!-- ── CRIAR SALA ── -->
-  <div id="s-criar" class="screen">
-    <div class="card">
-      <p class="card-label">Nova Sala</p>
-      <div id="msg-criar" class="msg"></div>
-      <div class="field"><label>Nome da Sala</label><input type="text" id="f-nome-sala" placeholder="Ex: Liga dos Vagabundos" maxlength="40" /></div>
-      <div class="field"><label>Senha</label><input type="password" id="f-senha-criar" placeholder="Mínimo 3 caracteres" maxlength="20" /></div>
-      <div class="field"><label>Seu apelido de técnico</label><input type="text" id="f-tecnico-criar" placeholder="Ex: Thiago do Grêmio" maxlength="30" /></div>
-      <div class="field">
-        <label>Limite de participantes</label>
-        <select id="f-max">
-          <option value="1">1 participante (solo)</option>
-          <option value="2">2 participantes</option><option value="3">3 participantes</option>
-          <option value="4">4 participantes</option><option value="5">5 participantes</option>
-          <option value="6">6 participantes</option><option value="7">7 participantes</option>
-          <option value="8">8 participantes</option><option value="9">9 participantes</option>
-          <option value="10" selected>10 participantes</option>
-        </select>
-      </div>
-      <hr class="divider" />
-      <button id="btn-criar" class="btn-acao" onclick="criarSala()">Criar Sala</button>
-      <div class="spin" id="spin-criar"></div>
-      <button class="btn-ghost" onclick="ir('s-home')">← Voltar</button>
-    </div>
-  </div>
-
-  <!-- ── ENTRAR NA SALA ── -->
-  <div id="s-entrar" class="screen">
-    <div class="card">
-      <p class="card-label">Entrar na Sala</p>
-      <div id="msg-entrar" class="msg"></div>
-      <div class="field"><label>Código da Sala</label><input type="text" id="f-codigo" class="code-input" placeholder="ABC123" maxlength="6" oninput="this.value=this.value.toUpperCase()" /></div>
-      <div class="field"><label>Senha</label><input type="password" id="f-senha-entrar" placeholder="Senha da sala" maxlength="20" /></div>
-      <div class="field"><label>Seu apelido de técnico</label><input type="text" id="f-tecnico-entrar" placeholder="Ex: Rafael Manager" maxlength="30" /></div>
-      <hr class="divider" />
-      <button id="btn-entrar" class="btn-acao" onclick="entrarSala()">Entrar na Sala</button>
-      <div class="spin" id="spin-entrar"></div>
-      <button class="btn-ghost" onclick="ir('s-home')">← Voltar</button>
-    </div>
-  </div>
-
-  <!-- ── PERSONALIZAÇÃO DO CLUBE ── -->
-  <div id="s-clube" class="screen">
-    <div class="card">
-      <p class="card-label">Crie Seu Clube</p>
-      <div id="msg-clube" class="msg"></div>
-
-      <!-- Preview ao vivo -->
-      <div class="escudo-preview-wrap">
-        <div id="prev-escudo"></div>
-        <div class="escudo-nome-preview" id="prev-nome">Meu Clube</div>
-        <span class="contraste-badge contraste-ok" id="prev-contraste">Contraste OK</span>
-      </div>
-
-      <!-- Nome -->
-      <div class="field">
-        <label>Nome do Clube</label>
-        <input type="text" id="f-clube-nome" placeholder="Ex: Thiago FC" maxlength="30"
-               oninput="atualizarPreview()" />
-      </div>
-
-      <!-- Cores -->
-      <div class="color-row">
-        <div class="field">
-          <label>Fundo</label>
-          <div class="color-input-wrap">
-            <input type="color" id="f-cor-fundo" value="#1a3a5c" oninput="atualizarPreview()" />
-          </div>
-        </div>
-        <div class="field">
-          <label>Texto</label>
-          <div class="color-input-wrap">
-            <input type="color" id="f-cor-texto" value="#f0c040" oninput="atualizarPreview()" />
-          </div>
-        </div>
-        <div class="field">
-          <label>Detalhe</label>
-          <div class="color-input-wrap">
-            <input type="color" id="f-cor-detalhe" value="#ffffff" oninput="atualizarPreview()" />
-          </div>
-        </div>
-      </div>
-
-      <hr class="divider" />
-
-      <!-- Forma do escudo -->
-      <div class="selector-label">Forma do Escudo</div>
-      <div id="shape-grid-container"></div>
-
-      <div class="selector-label" style="margin-top:14px;">Detalhe do Escudo</div>
-      <div id="detail-grid-container"></div>
-
-      <hr class="divider" />
-      <button id="btn-clube" class="btn-acao" onclick="salvarClube()">Salvar e Ir pro Lobby</button>
-      <div class="spin" id="spin-clube"></div>
-    </div>
-  </div>
-
-  <!-- ── LOBBY ── -->
-  <div id="s-lobby" class="screen">
-    <div class="card">
-      <p class="card-label" id="lby-nome-sala">Lobby</p>
-
-      <div class="sala-code-box">
-        <div class="sala-code-lbl">Código da Sala</div>
-        <div class="sala-code-val" id="lby-codigo">------</div>
-        <div class="sala-code-hint">Manda o código pros amigos entrarem</div>
-      </div>
-
-      <div id="msg-lobby" class="msg"></div>
-
-      <!-- Botão editar clube -->
-      <button class="btn-edit-clube" onclick="editarClube()">
-        <span class="mini-wrap" id="lby-mini-wrap"><span style="font-size:20px;color:var(--text2);">⬡</span></span>
-        <span id="lby-btn-clube-txt">Criar meu clube</span>
-        <span class="edit-icon">✏️</span>
-      </button>
-
-      <div class="p-titulo">Participantes</div>
-      <ul class="p-lista" id="lby-lista">
-        <li class="p-card"><span style="color:var(--text2)">Carregando...</span></li>
-      </ul>
-
-      <hr class="divider" />
-      <div id="ctrl-dono" style="display:none;">
-        <button class="btn-acao" disabled style="opacity:.4;cursor:not-allowed;">
-          Iniciar Temporada &nbsp;·&nbsp; disponível na Etapa 4
-        </button>
-      </div>
-
-      <p class="lobby-meu-nome">Você está jogando como <strong id="lby-meu-nome">—</strong></p>
-      <button class="btn-ghost" onclick="sairLobby()">Sair da Sala</button>
-    </div>
-  </div>
-
-  <div class="rodape">Era Uma Vez na Firmino · Temporada 01 · Sala Privada</div>
-</div>
-
-<script>
-  var API  = 'https://script.google.com/macros/s/AKfycbwnjcMCR6p40E3oGEfRo0lfSX6J_hnma9xrrKniSXGbPKzSfCPrHClYgUneHybjt585pw/exec';
-  var S    = { roomId: null, userId: null, nomeSala: null, nick: null, dono: false, clubId: null, temClube: false };
-  var poll = null;
-
-  // ── FORMAS E DETALHES ──
-  var SHAPES = [
-    { id:'classico', label:'Clássico', type:'path',
-      d:'M 12,8 L 88,8 L 88,70 L 50,104 L 12,70 Z' },
-    { id:'medieval', label:'Medieval', type:'path',
-      d:'M 8,8 L 92,8 L 92,64 Q 92,96 50,107 Q 8,96 8,64 Z' },
-    { id:'moderno',  label:'Moderno',  type:'path',
-      d:'M 24,8 L 76,8 L 96,24 L 96,72 L 50,107 L 4,72 L 4,24 Z' },
-    { id:'brasao',   label:'Brasão',   type:'path',
-      d:'M 50,4 L 88,12 L 97,58 Q 90,96 50,108 Q 10,96 3,58 L 12,12 Z' },
-    { id:'redondo',  label:'Redondo',  type:'circle',  cx:50, cy:55, r:48 },
-    { id:'oval',     label:'Oval',     type:'ellipse', cx:50, cy:55, rx:44, ry:51 }
-  ];
-
-  var DETAILS = [
-    { id:'simples',  label:'Simples',  d: null },
-    { id:'faixa',    label:'Faixa',    d: 'M 0,38 L 100,38 L 100,65 L 0,65 Z' },
-    { id:'diagonal', label:'Diagonal', d: 'M 0,0 L 60,0 L 100,55 L 100,110 L 40,110 L 0,55 Z' },
-    { id:'metade',   label:'Metade',   d: 'M 50,0 L 100,0 L 100,110 L 50,110 Z' },
-    { id:'topo',     label:'Topo',     d: 'M 0,0 L 100,0 L 100,40 L 0,40 Z' }
-  ];
-
-  var selectedShape  = 'classico';
-  var selectedDetail = 'simples';
-
-  // ── GERAÇÃO DE SVG DO ESCUDO ──
-  function shapeEl(sh, fill, stroke, sw) {
-    var f = ' fill="'+(fill||'none')+'"';
-    var s = stroke ? ' stroke="'+stroke+'" stroke-width="'+(sw||2)+'"' : '';
-    if (sh.type === 'circle')  return '<circle cx="'+sh.cx+'" cy="'+sh.cy+'" r="'+sh.r+'"'+f+s+'/>';
-    if (sh.type === 'ellipse') return '<ellipse cx="'+sh.cx+'" cy="'+sh.cy+'" rx="'+sh.rx+'" ry="'+sh.ry+'"'+f+s+'/>';
-    return '<path d="'+sh.d+'"'+f+s+'/>';
-  }
-
-  function clipEl(sh) {
-    if (sh.type === 'circle')  return '<circle cx="'+sh.cx+'" cy="'+sh.cy+'" r="'+sh.r+'"/>';
-    if (sh.type === 'ellipse') return '<ellipse cx="'+sh.cx+'" cy="'+sh.cy+'" rx="'+sh.rx+'" ry="'+sh.ry+'"/>';
-    return '<path d="'+sh.d+'"/>';
-  }
-
-  function gerarSVG(shapeId, detailId, bgColor, textColor, accentColor, iniciais, uid, w, h, fs) {
-    var sh  = SHAPES.find(function(s){return s.id===shapeId;}) || SHAPES[0];
-    var det = DETAILS.find(function(d){return d.id===detailId;}) || DETAILS[0];
-    var cid = 'c' + uid.replace(/[^a-zA-Z0-9]/g,'');
-    w = w||100; h = h||110; fs = fs||28;
-
-    var defs = '<defs><clipPath id="'+cid+'">'+clipEl(sh)+'</clipPath></defs>';
-    var bg   = shapeEl(sh, bgColor, null, 0);
-    var ov   = det.d ? '<path d="'+det.d+'" fill="'+accentColor+'" opacity="0.38" clip-path="url(#'+cid+')"/>' : '';
-    var bord = shapeEl(sh, 'none', accentColor, 2.5);
-    var txt  = iniciais
-      ? '<text x="50" y="59" text-anchor="middle" dominant-baseline="central" font-family="\'Bebas Neue\',\'Arial Black\',sans-serif" font-size="'+fs+'" font-weight="bold" fill="'+textColor+'" letter-spacing="2">'+iniciais+'</text>'
-      : '';
-    return '<svg viewBox="0 0 100 110" width="'+w+'" height="'+h+'" xmlns="http://www.w3.org/2000/svg">'+defs+bg+ov+bord+txt+'</svg>';
-  }
-
-  // ── RENDERIZAR SELETORES ──
-  function renderShapeGrid() {
-    var html = '<div class="shape-grid">';
-    SHAPES.forEach(function(sh) {
-      var svg = gerarSVG(sh.id, 'simples', '#162b1a', '', '#4ade80', '', 'shp'+sh.id, 48, 53, 0);
-      html += '<div class="shape-btn'+(selectedShape===sh.id?' selected':'')+'" onclick="selecionarShape(\''+sh.id+'\')">' +
-              svg + '<span>'+sh.label+'</span></div>';
-    });
-    document.getElementById('shape-grid-container').innerHTML = html + '</div>';
-  }
-
-  function renderDetailGrid() {
-    var bg  = document.getElementById('f-cor-fundo')   ? document.getElementById('f-cor-fundo').value   : '#1a3a5c';
-    var acc = document.getElementById('f-cor-detalhe') ? document.getElementById('f-cor-detalhe').value : '#ffffff';
-    var html = '<div class="detail-grid">';
-    DETAILS.forEach(function(det) {
-      var svg = gerarSVG(selectedShape, det.id, bg, '', acc, '', 'det'+det.id, 40, 44, 0);
-      html += '<div class="detail-btn'+(selectedDetail===det.id?' selected':'')+'" onclick="selecionarDetail(\''+det.id+'\')">' +
-              svg + '<span>'+det.label+'</span></div>';
-    });
-    document.getElementById('detail-grid-container').innerHTML = html + '</div>';
-  }
-
-  function selecionarShape(id) {
-    selectedShape = id;
-    renderShapeGrid();
-    atualizarPreview();
-  }
-
-  function selecionarDetail(id) {
-    selectedDetail = id;
-    atualizarPreview();
-  }
-
-  // ── NAVEGAÇÃO ──
-  function ir(id) {
-    document.querySelectorAll('.screen').forEach(function(s) { s.classList.remove('active'); });
-    document.getElementById(id).classList.add('active');
-    limparMsgs();
-  }
-  function limparMsgs() {
-    document.querySelectorAll('.msg').forEach(function(m) { m.className = 'msg'; m.textContent = ''; });
-  }
-  function msg(id, txt, tipo) {
-    var el = document.getElementById(id);
-    el.className = 'msg ' + tipo + ' show';
-    el.textContent = txt;
-  }
-  function loading(btnId, spinId, on) {
-    var b = document.getElementById(btnId), sp = document.getElementById(spinId);
-    b.disabled = on; b.style.display = on ? 'none' : 'block';
-    sp.className = on ? 'spin show' : 'spin';
-  }
-
-  // ── API ──
-  function post(data) {
-    return fetch(API, { method: 'POST', headers: { 'Content-Type': 'text/plain' },
-      body: JSON.stringify(data), redirect: 'follow' }).then(function(r) { return r.json(); });
-  }
-  function get(params) {
-    var qs = Object.keys(params).map(function(k) {
-      return encodeURIComponent(k) + '=' + encodeURIComponent(params[k]);
-    }).join('&');
-    return fetch(API + '?' + qs, { redirect: 'follow' }).then(function(r) { return r.json(); });
-  }
-
-  // ── CRIAR SALA ──
-  function criarSala() {
-    var nome = v('f-nome-sala'), senha = document.getElementById('f-senha-criar').value;
-    var nick = v('f-tecnico-criar'), max = document.getElementById('f-max').value;
-    if (!nome)            { msg('msg-criar','Informe o nome da sala.','erro'); return; }
-    if (senha.length < 3) { msg('msg-criar','Senha precisa ter 3+ caracteres.','erro'); return; }
-    if (!nick)            { msg('msg-criar','Informe seu apelido de técnico.','erro'); return; }
-    loading('btn-criar','spin-criar',true);
-    post({ action:'createRoom', nomeSala:nome, senha:senha, nomeTecnico:nick, maxHumanos:max })
-      .then(function(res) {
-        loading('btn-criar','spin-criar',false);
-        if (res.success) { sessao(res); irParaClube(); }
-        else msg('msg-criar', res.error || 'Erro ao criar sala.', 'erro');
-      }).catch(function() { loading('btn-criar','spin-criar',false); msg('msg-criar','Falha na conexão.','erro'); });
-  }
-
-  // ── ENTRAR NA SALA ──
-  function entrarSala() {
-    var codigo = v('f-codigo'), senha = document.getElementById('f-senha-entrar').value;
-    var nick   = v('f-tecnico-entrar');
-    if (codigo.length !== 6) { msg('msg-entrar','Código tem 6 caracteres.','erro'); return; }
-    if (!senha)              { msg('msg-entrar','Informe a senha.','erro'); return; }
-    if (!nick)               { msg('msg-entrar','Informe seu apelido.','erro'); return; }
-    loading('btn-entrar','spin-entrar',true);
-    post({ action:'joinRoom', roomId:codigo, senha:senha, nomeTecnico:nick })
-      .then(function(res) {
-        loading('btn-entrar','spin-entrar',false);
-        if (res.success) { sessao(res); irParaClube(); }
-        else msg('msg-entrar', res.error || 'Erro ao entrar na sala.', 'erro');
-      }).catch(function() { loading('btn-entrar','spin-entrar',false); msg('msg-entrar','Falha na conexão.','erro'); });
-  }
-
-  function sessao(res) {
-    S.roomId = res.roomId; S.userId = res.userId;
-    S.nomeSala = res.nomeSala; S.nick = res.nomeTecnico; S.dono = !!res.isOwner;
-  }
-
-  // ── TELA CLUBE ──
-  function irParaClube() {
-    ir('s-clube');
-    renderShapeGrid();
-    atualizarPreview();
-  }
-
-  function editarClube() { stopPoll(); irParaClube(); }
-
-  // ── PREVIEW AO VIVO ──
-  function atualizarPreview() {
-    var nome    = document.getElementById('f-clube-nome').value.trim() || 'Meu Clube';
-    var fundo   = document.getElementById('f-cor-fundo').value;
-    var texto   = document.getElementById('f-cor-texto').value;
-    var detalhe = document.getElementById('f-cor-detalhe').value;
-    var iniciais = gerarIniciaisJS(nome);
-
-    document.getElementById('prev-escudo').innerHTML =
-      gerarSVG(selectedShape, selectedDetail, fundo, texto, detalhe, iniciais, 'prev', 100, 110, 28);
-    document.getElementById('prev-nome').textContent = nome;
-
-    var ratio = contrastRatioJS(fundo, texto);
-    var badge = document.getElementById('prev-contraste');
-    if (ratio >= 3) {
-      badge.className = 'contraste-badge contraste-ok';
-      badge.textContent = 'Contraste OK (' + ratio.toFixed(1) + ':1)';
-    } else {
-      badge.className = 'contraste-badge contraste-ruim';
-      badge.textContent = 'Contraste ruim (' + ratio.toFixed(1) + ':1) — ajuste as cores';
-    }
-
-    renderDetailGrid(); // sincroniza detalhes com as cores atuais
-  }
-
-  // ── SALVAR CLUBE ──
-  function salvarClube() {
-    var nome    = v('f-clube-nome');
-    var fundo   = document.getElementById('f-cor-fundo').value;
-    var texto   = document.getElementById('f-cor-texto').value;
-    var detalhe = document.getElementById('f-cor-detalhe').value;
-
-    if (!nome) { msg('msg-clube','Informe o nome do clube.','erro'); return; }
-
-    var ratio = contrastRatioJS(fundo, texto);
-    if (ratio < 3) { msg('msg-clube','Contraste insuficiente. Ajuste as cores do escudo.','erro'); return; }
-
-    loading('btn-clube','spin-clube',true);
-    post({ action:'saveClubIdentity', roomId:S.roomId, userId:S.userId,
-           nomeClube:nome, primaryColor:fundo, textColor:texto, accentColor:detalhe,
-           shapeId: selectedShape, detailId: selectedDetail })
-      .then(function(res) {
-        loading('btn-clube','spin-clube',false);
-        if (res.success) {
-          S.clubId   = res.clubId;
-          S.temClube = true;
-          abrirLobby();
-        } else {
-          msg('msg-clube', res.error || 'Erro ao salvar clube.', 'erro');
-        }
-      }).catch(function() { loading('btn-clube','spin-clube',false); msg('msg-clube','Falha na conexão.','erro'); });
-  }
-
-  // ── LOBBY ──
-  function abrirLobby() {
-    document.getElementById('lby-nome-sala').textContent = S.nomeSala;
-    document.getElementById('lby-codigo').textContent    = S.roomId;
-    document.getElementById('lby-meu-nome').textContent  = S.nick;
-    if (S.dono) document.getElementById('ctrl-dono').style.display = 'block';
-    ir('s-lobby');
-    pollAgora();
-    poll = setInterval(pollAgora, 5000);
-  }
-
-  function sairLobby() {
-    stopPoll();
-    S = { roomId:null, userId:null, nomeSala:null, nick:null, dono:false, clubId:null, temClube:false };
-    ir('s-home');
-  }
-
-  function stopPoll() { if (poll) { clearInterval(poll); poll = null; } }
-
-  function pollAgora() {
-    if (!S.roomId || !S.userId) return;
-    get({ action:'getRoomState', roomId:S.roomId, userId:S.userId })
-      .then(function(res) {
-        if (!res.success) {
-          if (res.error && res.error.indexOf('removido') !== -1) {
-            stopPoll();
-            S = { roomId:null, userId:null, nomeSala:null, nick:null, dono:false, clubId:null, temClube:false };
-            ir('s-home');
-            msg('msg-home', 'Você foi removido da sala pelo dono.', 'aviso');
-          }
-          return;
-        }
-        renderLobby(res.participantes, res.clubes, res.sala.ownerUserId);
-        atualizarBtnClube(res.clubes);
-      }).catch(function() {});
-  }
-
-  function expulsarParticipante(targetUserId) {
-    if (!confirm('Remover este participante?\n\nEle poderá entrar novamente com o mesmo código e recriar o clube normalmente.')) return;
-    post({ action:'kickParticipant', roomId:S.roomId, userId:S.userId, targetUserId:targetUserId })
-      .then(function(res) {
-        if (!res.success) msg('msg-lobby', res.error || 'Erro ao remover participante.', 'erro');
-      }).catch(function() {});
-  }
-
-  function atualizarBtnClube(clubes) {
-    var meuClube = clubes.find(function(c) { return c.userId === S.userId; });
-    var btnTxt   = document.getElementById('lby-btn-clube-txt');
-    var miniWrap = document.getElementById('lby-mini-wrap');
-    if (meuClube) {
-      btnTxt.textContent = meuClube.nomeClube;
-      miniWrap.innerHTML = gerarSVG(
-        meuClube.shapeId || 'classico', meuClube.detailId || 'simples',
-        meuClube.primaryColor, meuClube.textColor, meuClube.accentColor || '#ffffff',
-        meuClube.iniciais, 'btn', 28, 31, 10
-      );
-    } else {
-      btnTxt.textContent = 'Criar meu clube';
-      miniWrap.innerHTML = '<span style="font-size:20px;color:var(--text2);">⬡</span>';
-    }
-  }
-
-  function renderLobby(participantes, clubes, ownerId) {
-    var ul = document.getElementById('lby-lista');
-    ul.innerHTML = '';
-    if (!participantes || !participantes.length) {
-      ul.innerHTML = '<li class="p-card"><span style="color:var(--text2)">Nenhum participante.</span></li>';
+    // Estado RETOMANDO
+    if (sala.status === 'retomando') {
+      renderLobbyRetomando(r);
       return;
     }
-    participantes.forEach(function(p) {
-      var clube = clubes.find(function(c) { return c.userId === p.userId; });
-      var li    = document.createElement('li');
-      li.className = 'p-card' + (clube ? ' tem-clube' : '');
 
-      var escHtml;
-      if (clube) {
-        var svgMini = gerarSVG(
-          clube.shapeId || 'classico', clube.detailId || 'simples',
-          clube.primaryColor, clube.textColor, clube.accentColor || '#ffffff',
-          clube.iniciais, clube.clubId || p.userId, 44, 48, 14
-        );
-        escHtml = '<div class="p-escudo-wrap">' + svgMini + '</div>';
-      } else {
-        escHtml = '<div class="p-escudo-vazio">?</div>';
-      }
-
-      var clubeNome   = clube ? esc(clube.nomeClube) : '<span style="color:var(--text2)">Sem clube</span>';
-      var tecnicoNome = esc(p.nomeTecnico);
-
-      var tags = '';
-      if (p.userId === ownerId)  tags += '<span class="tag tag-dono">Dono</span>';
-      if (p.userId === S.userId) tags += '<span class="tag tag-voce">Você</span>';
-      tags += clube
-        ? '<span class="tag tag-ok">' + statusLabel(clube.statusClube) + '</span>'
-        : '<span class="tag tag-sem">Sem clube</span>';
-
-      var kickBtn = (S.dono && p.userId !== S.userId)
-        ? '<button class="btn-kick" title="Remover da sala" onclick="expulsarParticipante(\''+p.userId+'\')">✕</button>'
-        : '';
-
-      li.innerHTML = escHtml +
-        '<div class="p-info"><div class="p-clube-nome">' + clubeNome + '</div>' +
-        '<div class="p-tecnico-nome">' + tecnicoNome + '</div></div>' +
-        '<div class="p-tags">' + tags + '</div>' + kickBtn;
-      ul.appendChild(li);
-    });
-  }
-
-  function statusLabel(s) {
-    return { identidade_ok:'Clube criado', montando_elenco:'Montando elenco',
-             time_valido:'Time válido', pronto:'Pronto!' }[s] || s;
-  }
-
-  // ── UTILITÁRIOS JS DE COR ──
-  function luminanceJS(hex) {
-    var r = parseInt(hex.slice(1,3),16)/255, g = parseInt(hex.slice(3,5),16)/255, b = parseInt(hex.slice(5,7),16)/255;
-    r = r<=0.03928 ? r/12.92 : Math.pow((r+0.055)/1.055,2.4);
-    g = g<=0.03928 ? g/12.92 : Math.pow((g+0.055)/1.055,2.4);
-    b = b<=0.03928 ? b/12.92 : Math.pow((b+0.055)/1.055,2.4);
-    return 0.2126*r + 0.7152*g + 0.0722*b;
-  }
-  function contrastRatioJS(h1, h2) {
-    var l1 = luminanceJS(h1), l2 = luminanceJS(h2);
-    return (Math.max(l1,l2)+0.05) / (Math.min(l1,l2)+0.05);
-  }
-  function gerarIniciaisJS(nome) {
-    return nome.trim().split(/\s+/).map(function(p){return p[0];}).join('').toUpperCase().substring(0,3) || '?';
-  }
-
-  function v(id)  { return document.getElementById(id).value.trim(); }
-  function esc(s) { var d=document.createElement('div'); d.appendChild(document.createTextNode(s||'')); return d.innerHTML; }
-
-  // ── INIT ──
-  window.addEventListener('DOMContentLoaded', function() {
-    renderShapeGrid();
-    atualizarPreview();
+    // Estado normal do lobby
+    renderLobbyNormal(r);
   });
+}
+
+function renderLobbyNormal(r) {
+  document.getElementById('lobby-normal').style.display = 'block';
+  document.getElementById('lobby-retomando').style.display = 'none';
+
+  var sala = r.sala;
+  document.getElementById('lb-title').textContent = sala.nomeSala;
+  document.getElementById('lb-sub').textContent   = sala.status === 'draft' ? 'Draft em andamento' : 'Aguardando jogadores';
+
+  // Participantes
+  var html = '';
+  (r.participantes||[]).forEach(function(p) {
+    var clube = (r.clubes||[]).find(function(c){ return c.userId===p.userId; });
+    var badge = p.userId===sala.ownerUserId ? '<span class="part-badge dono">Host</span>' : '';
+    var cbadge = clube && clube.statusClube==='identidade_ok' ? '<span class="part-badge ok">✔ Clube</span>' : '<span class="part-badge aguardando">Clube</span>';
+    var clubeNome = clube ? '<span class="part-club">'+clube.nomeClube+'</span>' : '';
+    html += '<div class="part-item">';
+    if (clube && clube.statusClube==='identidade_ok') {
+      html += gerarSVG(clube.shapeId,clube.detailId,clube.primaryColor,clube.textColor,clube.accentColor,clube.iniciais,'lb_'+p.userId,30,30,8);
+    }
+    html += '<span class="part-name">'+esc(p.nomeTecnico)+'</span>'+badge+cbadge+clubeNome+'</div>';
+  });
+  document.getElementById('lb-parts').innerHTML = html;
+
+  // Botões
+  var prontos = (r.clubes||[]).filter(function(c){ return c.statusClube==='identidade_ok'; }).length;
+  document.getElementById('btn-iniciar').style.display = S.dono ? 'block' : 'none';
+  document.getElementById('btn-iniciar').disabled = prontos < 2;
+  document.getElementById('btn-iniciar').textContent = '▶ Iniciar Draft (' + prontos + ' prontos)';
+  document.getElementById('btn-pausar').style.display = S.dono && sala.status==='draft' ? 'block' : 'none';
+  document.getElementById('btn-pedir-tempo').style.display = 'block';
+
+  // Detecta clube do usuário
+  var meuClube = (r.clubes||[]).find(function(c){ return c.userId===S.userId; });
+  S.temClube = !!(meuClube && meuClube.statusClube==='identidade_ok');
+  S.clubId = meuClube ? meuClube.clubId : null;
+}
+
+function renderLobbyRetomando(r) {
+  document.getElementById('lobby-normal').style.display = 'none';
+  document.getElementById('lobby-retomando').style.display = 'block';
+
+  var info = r.retomandoInfo || { totalSave:0, voltaram:0, faltando:[] };
+  var pct  = info.totalSave ? Math.round(info.voltaram/info.totalSave*100) : 0;
+  document.getElementById('ret-bar').style.width = pct + '%';
+  document.getElementById('ret-counter').textContent = info.voltaram + ' / ' + info.totalSave + ' retornaram';
+
+  var html = '';
+  // Quem já voltou
+  (r.participantes||[]).forEach(function(p) {
+    html += '<div class="part-item">';
+    html += '<span class="part-badge voltou">✔ Voltou</span>';
+    html += '<span class="part-name">'+esc(p.nomeTecnico)+'</span></div>';
+  });
+  // Quem falta
+  (info.faltando||[]).forEach(function(p) {
+    html += '<div class="part-item" style="opacity:.5">';
+    html += '<span class="part-badge faltando">Aguardando</span>';
+    html += '<span class="part-name">'+esc(p.nomeTecnico)+'</span></div>';
+  });
+  document.getElementById('ret-parts').innerHTML = html;
+
+  var todoVoltaram = info.voltaram >= info.totalSave;
+  document.getElementById('btn-continuar').style.display = S.dono ? 'block' : 'none';
+  document.getElementById('btn-aguardar-ret').style.display = !S.dono ? 'block' : 'none';
+  if (S.dono && !todoVoltaram) {
+    document.getElementById('btn-continuar').textContent = '▶ Continuar mesmo assim';
+  } else if (S.dono) {
+    document.getElementById('btn-continuar').textContent = '▶ Retomar Jogo';
+  }
+}
+
+// ═══════════════════════════════════════════════
+//  CLUBE
+// ═══════════════════════════════════════════════
+var selectedShape = 'classico', selectedDetail = 'simples';
+function irParaClube() {
+  document.getElementById('cl-sala').textContent = S.nomeSala||'-';
+  document.getElementById('cl-nick').textContent = S.nick||'-';
+  renderShapeGrid(); renderDetailGrid(); atualizarPreview();
+  ir('s-clube');
+}
+
+function renderShapeGrid() {
+  var el = document.getElementById('shape-grid');
+  el.innerHTML = Object.keys(SHAPES).map(function(k) {
+    var sel = k===selectedShape;
+    return '<div onclick="selecionarShape(\''+k+'\')" style="cursor:pointer;padding:4px;border-radius:8px;border:2px solid '+(sel?'var(--verde)':'var(--c3)')+'">'
+      +gerarSVG(k,'simples','#2d4a35','#ffffff','#fbbf24','FC',k,44,44,10)+'</div>';
+  }).join('');
+}
+
+function renderDetailGrid() {
+  var el = document.getElementById('detail-grid');
+  el.innerHTML = Object.keys(DETAILS).map(function(k) {
+    var sel = k===selectedDetail;
+    return '<div onclick="selecionarDetail(\''+k+'\')" style="cursor:pointer;padding:4px;border-radius:8px;border:2px solid '+(sel?'var(--verde)':'var(--c3)')+'">'
+      +gerarSVG('classico',k,'#2d4a35','#ffffff','#fbbf24','FC',k+'_d',44,44,10)+'</div>';
+  }).join('');
+}
+
+function selecionarShape(id) { selectedShape=id; renderShapeGrid(); atualizarPreview(); }
+function selecionarDetail(id) { selectedDetail=id; renderDetailGrid(); atualizarPreview(); }
+
+document.addEventListener('change', function(e) {
+  if (['cl-cor1','cl-cor2','cl-cor3'].includes(e.target.id)) atualizarPreview();
+});
+document.addEventListener('input', function(e) {
+  if (e.target.id === 'cl-nome') atualizarPreview();
+});
+
+function atualizarPreview() {
+  var nome = v('cl-nome')||'FC';
+  var ini  = nome.trim().split(/\s+/).map(function(p){return p[0]}).join('').toUpperCase().substring(0,3)||'FC';
+  document.getElementById('cl-preview').innerHTML =
+    gerarSVG(selectedShape, selectedDetail, v('cl-cor1'), v('cl-cor2'), v('cl-cor3'), ini, 'prev', 90, 90, 22);
+}
+
+function salvarClube() {
+  post('saveClubIdentity', {
+    roomId:S.roomId, userId:S.userId,
+    nomeClube:v('cl-nome'), primaryColor:v('cl-cor1'),
+    textColor:v('cl-cor2'), accentColor:v('cl-cor3'),
+    shapeId:selectedShape, detailId:selectedDetail
+  }, function(r) {
+    if (!r.success) return msg('cl-msg','erro',r.error);
+    S.clubId=r.clubId; S.temClube=true;
+    msg('cl-msg','ok','Clube "'+r.nomeClube+'" salvo!');
+    setTimeout(function(){ entrarNoLobby(); }, 1200);
+  });
+}
+
+// ═══════════════════════════════════════════════
+//  DRAFT
+// ═══════════════════════════════════════════════
+function iniciarDraft() {
+  post('startDraft', { roomId:S.roomId, userId:S.userId, rodadas:18, salaryCap:200 }, function(r) {
+    if (!r.success) return msg('lb-msg','erro',r.error);
+  });
+}
+
+function iniciarTelaDraft() {
+  if (pollLobby) clearInterval(pollLobby);
+  ir('s-draft');
+  document.getElementById('dr-btn-pausar').style.display = S.dono ? 'block' : 'none';
+  document.getElementById('dr-btn-skip').style.display   = S.dono ? 'block' : 'none';
+  carregarJogadores(function(){ setTab('jogadores'); });
+  if (D.pollDraft) clearInterval(D.pollDraft);
+  pollDraftAgora();
+  D.pollDraft = setInterval(pollDraftAgora, 3000);
+}
+
+function carregarJogadores(cb) {
+  get({ action:'getJogadores', roomId:S.roomId }, function(r) {
+    if (!r.success) return;
+    D.jogadores = r.jogadores||[];
+    D.playerMap = {};
+    D.jogadores.forEach(function(j){ D.playerMap[j.playerId]=j; });
+    renderFilters();
+    renderJogadores();
+    if (cb) cb();
+  });
+}
+
+function pollDraftAgora() {
+  get({ action:'getDraftState', roomId:S.roomId, userId:S.userId }, function(r) {
+    if (!r.success) return;
+
+    // TEMPO
+    get({ action:'getRoomState', roomId:S.roomId, userId:S.userId }, function(rs) {
+      if (rs.success) {
+        handleTempoBanner(rs.sala.tempoSolicitado);
+        var sala = rs.sala;
+        if (sala.gameStatus === 'pausado' && sala.saveCode) {
+          if (sala.saveCode !== SAVE_CODE_ATIVO) {
+            SAVE_CODE_ATIVO = sala.saveCode;
+            mostrarSaveModal(sala.saveCode);
+          }
+          document.getElementById('dr-paused-bar').style.display = 'block';
+          document.getElementById('dr-save-code').textContent = sala.saveCode;
+        } else {
+          document.getElementById('dr-paused-bar').style.display = 'none';
+        }
+      }
+    });
+
+    if (!r.draftAtivo) return;
+
+    D.ativo       = r.draftStatus === 'ativo';
+    D.ordem       = r.ordem||[];
+    D.pickAtual   = r.pickAtual||0;
+    D.rodadaAtual = r.rodadaAtual||1;
+    D.totalRodadas= r.totalRodadas||18;
+    D.currentClubId= r.currentClubId;
+    D.isMinhaVez  = r.isMinhaVez||false;
+    D.meuClubeId  = r.meuClubeId;
+    D.filaTurnos  = r.filaTurnos||[];
+    D.picksFeitos = r.picksFeitos||{};
+    D.salarios    = r.salarios||{};
+    D.salaryCap   = r.salaryCap||200;
+    D.gameStatus  = r.gameStatus||'normal';
+
+    // taken
+    D.takenNomeReais = [];
+    D.jogadores.forEach(function(j) {
+      if (!j.disponivel) D.takenNomeReais.push(j.nomeReal);
+    });
+    Object.values(D.picksFeitos).forEach(function(arr) {
+      (arr||[]).forEach(function(pid) {
+        var jog = D.playerMap[pid];
+        if (jog && D.takenNomeReais.indexOf(jog.nomeReal) === -1)
+          D.takenNomeReais.push(jog.nomeReal);
+      });
+    });
+
+    renderDraftHeader();
+    renderJogadores();
+    renderFila();
+    renderElenco();
+  });
+}
+
+function renderDraftHeader() {
+  var N = D.ordem.length;
+  document.getElementById('dr-round').textContent = 'Rodada '+D.rodadaAtual+' · Pick '+(D.pickAtual+1)+' de '+(N*D.totalRodadas);
+  var clubeAtual = D.clubeMap[D.currentClubId];
+  document.getElementById('dr-club').textContent = clubeAtual ? clubeAtual.nomeClube : (D.draftStatus==='concluido'?'Draft Concluído':'...');
+  var meuSal = D.salarios[D.meuClubeId]||0;
+  document.getElementById('dr-sal-pill').innerHTML = 'Meu Cap: <span>'+(D.salaryCap-meuSal)+' pts</span>';
+  document.getElementById('dr-vez').style.display = D.isMinhaVez ? 'block' : 'none';
+}
+
+// Carregar mapa de clubes
+function carregarClubeMap(cb) {
+  get({ action:'getRoomState', roomId:S.roomId, userId:S.userId }, function(r) {
+    if (!r.success) return;
+    D.clubeMap = {};
+    (r.clubes||[]).forEach(function(c){ D.clubeMap[c.clubId]=c; });
+    if (cb) cb();
+  });
+}
+
+function renderFilters() {
+  var grupos = ['TODOS','GOL','ZAG','LAT','VOL','MEI','ATA'];
+  document.getElementById('filter-bar').innerHTML = grupos.map(function(g) {
+    return '<div class="filter-chip '+(D.posFilter===g?'ativo':'')+'" onclick="setPosFilter(\''+g+'\')">'+g+'</div>';
+  }).join('');
+}
+
+function setPosFilter(g) { D.posFilter=g; renderFilters(); renderJogadores(); }
+
+function renderJogadores() {
+  var q = (document.getElementById('search-input')||{}).value||'';
+  var lista = D.jogadores.filter(function(j) {
+    if (D.posFilter && D.posFilter!=='TODOS' && j.grupoPosicao!==D.posFilter) return false;
+    if (q) { var ql=q.toLowerCase(); return j.apelido.toLowerCase().includes(ql)||j.clubeReferencia.toLowerCase().includes(ql); }
+    return true;
+  });
+  var taken = new Set(D.takenNomeReais);
+  var html = lista.map(function(j) {
+    var isTomado = taken.has(j.nomeReal);
+    var isSel    = D.selectedPlayer && D.selectedPlayer.playerId===j.playerId;
+    var stars = (j.estrelaDourada?'<span class="star ouro">★</span>':'')+(j.estrelaPrata?'<span class="star prata">★</span>':'');
+    return '<div class="jog-card'+(isTomado?' tomado':'')+(isSel?' selected':'')+'" onclick="'+(!isTomado&&D.isMinhaVez?'selecionarJogador(\''+j.playerId+'\')':'')+'">'+
+      '<div class="jog-ovr">'+j.overall+'</div>'+
+      '<div class="jog-info"><div class="apelido">'+esc(j.apelido)+stars+'</div><div class="meta">'+esc(j.posicaoPrincipal)+' · '+esc(j.clubeReferencia)+(j.anoReferencia?' '+j.anoReferencia:'')+'</div></div>'+
+      '<div class="jog-sal">'+j.salaryCost+'pts</div>'+
+      '</div>';
+  }).join('');
+  document.getElementById('jogadores-list').innerHTML = html||'<div style="color:var(--text2);text-align:center;padding:20px">Nenhum jogador disponível</div>';
+}
+
+function selecionarJogador(pid) {
+  if (!D.isMinhaVez) return;
+  D.selectedPlayer = D.playerMap[pid];
+  if (!D.selectedPlayer) return;
+  var meuSal   = D.salarios[D.meuClubeId]||0;
+  var custo    = D.selectedPlayer.salaryCost;
+  var restante = D.salaryCap - meuSal - custo;
+  var pct      = Math.min(100, (meuSal+custo)/D.salaryCap*100);
+  document.getElementById('ps-nome').textContent  = D.selectedPlayer.apelido;
+  document.getElementById('ps-pos').textContent   = D.selectedPlayer.posicaoPrincipal;
+  document.getElementById('ps-ovr').textContent   = D.selectedPlayer.overall;
+  document.getElementById('ps-sal').textContent   = custo + ' pts';
+  document.getElementById('ps-rest').textContent  = restante + ' pts';
+  document.getElementById('ps-bar').style.width   = pct+'%';
+  document.getElementById('ps-bar').className     = 'sal-bar-fill'+(restante<0?' perigo':'');
+  document.getElementById('ps-confirmar').disabled = restante < 0;
+  document.getElementById('pick-sheet').classList.add('aberto');
+  renderJogadores();
+}
+
+function fecharPickSheet() {
+  D.selectedPlayer = null;
+  document.getElementById('pick-sheet').classList.remove('aberto');
+  renderJogadores();
+}
+
+function confirmarPick() {
+  if (!D.selectedPlayer || !D.isMinhaVez) return;
+  document.getElementById('ps-confirmar').disabled = true;
+  post('makePick', { roomId:S.roomId, userId:S.userId, playerId:D.selectedPlayer.playerId }, function(r) {
+    if (!r.success) {
+      document.getElementById('ps-confirmar').disabled = false;
+      return alert(r.error);
+    }
+    fecharPickSheet();
+    // Marca localmente como tomado
+    if (D.selectedPlayer) D.takenNomeReais.push(D.selectedPlayer.nomeReal);
+    D.selectedPlayer = null;
+    pollDraftAgora();
+  });
+}
+
+function pularTurno() {
+  if (!confirm('Pular o turno do clube atual?')) return;
+  post('skipPick', { roomId:S.roomId, userId:S.userId }, function(r) {
+    if (!r.success) return alert(r.error);
+    pollDraftAgora();
+  });
+}
+
+function renderElenco() {
+  if (!D.meuClubeId) return;
+  var pids   = D.picksFeitos[D.meuClubeId]||[];
+  var meuSal = D.salarios[D.meuClubeId]||0;
+  var pct    = Math.min(100, meuSal/D.salaryCap*100);
+  document.getElementById('ec-sal-txt').textContent = meuSal+' / '+D.salaryCap+' pts';
+  document.getElementById('ec-sal-bar').style.width = pct+'%';
+  document.getElementById('ec-sal-bar').className = 'sal-bar-fill'+(pct>90?' perigo':'');
+  var html = pids.map(function(pid) {
+    var j = D.playerMap[pid];
+    if (!j) return '';
+    return '<div class="elenco-jog"><span class="pos">'+j.grupoPosicao+'</span><span class="nome">'+esc(j.apelido)+'</span><span class="ovr">'+j.overall+'</span></div>';
+  }).join('');
+  document.getElementById('elenco-list').innerHTML = html||'<div style="color:var(--text2);padding:10px;font-size:.82rem">Nenhum jogador escolhido ainda</div>';
+}
+
+function renderFila() {
+  var html = D.filaTurnos.map(function(cid, i) {
+    var c   = D.clubeMap[cid]||{};
+    var abs = D.pickAtual+i;
+    var rodada = Math.floor(abs/Math.max(D.ordem.length,1))+1;
+    var isAtual = i===0;
+    return '<div class="fila-item'+(isAtual?' atual':'')+'">'+
+      '<div class="fila-num'+(isAtual?' atual':'')+'">'+( abs+1)+'</div>'+
+      '<div style="flex:1"><div class="fila-club">'+(c.nomeClube||'Bot')+'</div>'+
+      '<div class="fila-rodada">Rodada '+rodada+'</div></div>'+
+      (isAtual?'<span style="font-size:.7rem;color:var(--verde)">ATUAL</span>':'')+
+      '</div>';
+  }).join('');
+  document.getElementById('fila-list').innerHTML = html;
+}
+
+function setTab(tab) {
+  ['jogadores','elenco','fila'].forEach(function(t) {
+    document.getElementById('tab-'+t).style.display = t===tab?'block':'none';
+  });
+  document.querySelectorAll('.tab-btn').forEach(function(b,i) {
+    b.classList.toggle('ativo', ['jogadores','elenco','fila'][i]===tab);
+  });
+  if (tab==='elenco') renderElenco();
+  if (tab==='fila')   renderFila();
+}
+
+// ═══════════════════════════════════════════════
+//  AÇÕES DE SALA
+// ═══════════════════════════════════════════════
+function pedirTempo() {
+  post('requestTempo', { roomId:S.roomId, userId:S.userId }, function(r) {
+    if (!r.success) return alert(r.error);
+  });
+}
+
+function dispensarTempo() {
+  post('clearTempo', { roomId:S.roomId, userId:S.userId }, function() {
+    limparTempoBanner();
+  });
+}
+
+function pausarJogo() {
+  if (!confirm('Pausar a partida e gerar código de save? Todos os jogadores verão o código.')) return;
+  post('pauseGame', { roomId:S.roomId, userId:S.userId }, function(r) {
+    if (!r.success) return alert(r.error);
+    SAVE_CODE_ATIVO = r.saveCode;
+    mostrarSaveModal(r.saveCode);
+  });
+}
+
+function continuarJogo() {
+  post('continueGame', { roomId:S.roomId, userId:S.userId }, function(r) {
+    if (!r.success) return msg('ret-msg','erro',r.error);
+    if (r.newStatus === 'draft') {
+      iniciarTelaDraft();
+    } else {
+      pollAgora();
+    }
+  });
+}
+
+// ═══════════════════════════════════════════════
+//  TEMPO BANNER
+// ═══════════════════════════════════════════════
+function handleTempoBanner(tempoObj) {
+  if (!tempoObj) {
+    if (TEMPO.ativo) limparTempoBanner();
+    return;
+  }
+  if (!TEMPO.ativo || TEMPO.quem !== tempoObj.por) {
+    iniciarTempoBanner(tempoObj);
+  }
+}
+
+function iniciarTempoBanner(obj) {
+  TEMPO.ativo = true;
+  TEMPO.quem  = obj.por;
+  TEMPO.segundos = obj.segundosRestantes || 60;
+  document.getElementById('tempo-banner').style.display = 'flex';
+  var nomeQuem = TEMPO.quem === S.userId ? 'Você' : (TEMPO.quem.substring(0,8)+'...');
+  document.getElementById('tempo-quem').textContent = nomeQuem;
+  document.getElementById('btn-dismiss-tempo').style.display = S.dono || TEMPO.quem===S.userId ? 'block':'none';
+  if (TEMPO.timer) clearInterval(TEMPO.timer);
+  atualizarContadorTempo();
+  TEMPO.timer = setInterval(function() {
+    TEMPO.segundos--;
+    if (TEMPO.segundos <= 0) limparTempoBanner();
+    else atualizarContadorTempo();
+  }, 1000);
+}
+
+function atualizarContadorTempo() {
+  document.getElementById('tempo-count').textContent = TEMPO.segundos;
+}
+
+function limparTempoBanner() {
+  TEMPO.ativo = false; TEMPO.quem = null; TEMPO.segundos = 0;
+  if (TEMPO.timer) { clearInterval(TEMPO.timer); TEMPO.timer=null; }
+  document.getElementById('tempo-banner').style.display = 'none';
+}
+
+// ═══════════════════════════════════════════════
+//  SAVE MODAL
+// ═══════════════════════════════════════════════
+function mostrarSaveModal(code) {
+  document.getElementById('save-modal-code').textContent = code;
+  document.getElementById('save-modal').style.display = 'flex';
+}
+
+function fecharSaveModal() {
+  document.getElementById('save-modal').style.display = 'none';
+}
+
+function copiarSaveCode() {
+  var code = document.getElementById('save-modal-code').textContent;
+  navigator.clipboard.writeText(code).then(function(){ alert('Código copiado: '+code); });
+}
+
+// ═══════════════════════════════════════════════
+//  SVG ESCUDO
+// ═══════════════════════════════════════════════
+function gerarSVG(shapeId, detailId, bg, txt, acc, ini, uid, w, h, fs) {
+  var sid   = uid.replace(/[^a-zA-Z0-9]/g,'_');
+  var path  = SHAPES[shapeId] || SHAPES.classico;
+  var det   = (DETAILS[detailId]||'').replace(/__ACC__/g, acc||'#ffffff');
+  return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="'+w+'" height="'+h+'">'
+    +'<defs><clipPath id="cp_'+sid+'"><path d="'+path+'"/></clipPath></defs>'
+    +'<path d="'+path+'" fill="'+bg+'" stroke="'+acc+'" stroke-width="3"/>'
+    +'<g clip-path="url(#cp_'+sid+')">'+det+'</g>'
+    +'<text x="50" y="56" text-anchor="middle" dominant-baseline="middle" '
+    +'font-family="Bebas Neue,sans-serif" font-size="'+fs+'" fill="'+txt+'" font-weight="bold">'+esc(ini)+'</text>'
+    +'</svg>';
+}
+
+// ═══════════════════════════════════════════════
+//  UTILIDADES
+// ═══════════════════════════════════════════════
+function v(id) { return (document.getElementById(id)||{}).value||''; }
+function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+function msg(id, tipo, texto) {
+  var el = document.getElementById(id);
+  if (!el) return;
+  if (!tipo || !texto) { el.className='msg'; el.style.display='none'; return; }
+  el.className='msg '+tipo;
+  el.textContent = texto;
+  el.style.display = 'block';
+}
+
+function copiarTexto(texto, msgId) {
+  navigator.clipboard.writeText(texto).then(function() {
+    msg(msgId, 'ok', 'Copiado: ' + texto.substring(0,16)+'...');
+    setTimeout(function(){ msg(msgId,'',''); }, 3000);
+  }).catch(function() {
+    prompt('Copie manualmente:', texto);
+  });
+}
+
+// ═══════════════════════════════════════════════
+//  INIT
+// ═══════════════════════════════════════════════
+window.addEventListener('load', function() {
+  ir('s-home');
+  // Carrega mapa de clubes quando entrar no draft
+  var orig = iniciarTelaDraft;
+  iniciarTelaDraft = function() {
+    carregarClubeMap(function() { orig(); });
+  };
+});
 </script>
 </body>
 </html>
