@@ -99,18 +99,37 @@
     .color-input-wrap input[type=color]:focus { border-color: var(--verde2); }
 
     /* ── ESCUDO PREVIEW ── */
-    .escudo-preview-wrap { display: flex; flex-direction: column; align-items: center; margin-bottom: 24px; gap: 12px; }
-    .escudo-lg {
-      width: 100px; height: 110px;
-      clip-path: polygon(50% 0%, 100% 18%, 100% 65%, 50% 100%, 0% 65%, 0% 18%);
-      display: flex; align-items: center; justify-content: center;
-      font-family: 'Bebas Neue', sans-serif; font-size: 30px; letter-spacing: 2px;
-      transition: all .3s; background: #2d3f30; color: #9ab89e;
-    }
+    .escudo-preview-wrap { display: flex; flex-direction: column; align-items: center; margin-bottom: 20px; gap: 10px; }
+    #prev-escudo { display: flex; align-items: center; justify-content: center; }
     .escudo-nome-preview { font-size: 14px; font-weight: 700; color: var(--text2); text-align: center; max-width: 200px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .contraste-badge { font-size: 11px; font-weight: 700; padding: 3px 9px; border-radius: 99px; }
     .contraste-ok   { background: rgba(74,222,128,.15); color: var(--verde); border: 1px solid rgba(74,222,128,.3); }
     .contraste-ruim { background: rgba(248,113,113,.15); color: var(--erro); border: 1px solid rgba(248,113,113,.3); }
+
+    /* ── SELETOR DE FORMA / DETALHE ── */
+    .selector-label { font-size: 10px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--text2); margin-bottom: 8px; }
+
+    .shape-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 7px; }
+    .shape-btn {
+      display: flex; flex-direction: column; align-items: center; gap: 5px;
+      padding: 10px 4px 7px; border: 1.5px solid var(--c2); border-radius: 8px;
+      background: var(--campo2); cursor: pointer; transition: all var(--dur);
+    }
+    .shape-btn:hover { border-color: var(--c3); background: rgba(255,255,255,.02); }
+    .shape-btn.selected { border-color: var(--verde); background: rgba(74,222,128,.07); }
+    .shape-btn span { font-size: 10px; font-weight: 700; color: var(--text2); text-transform: uppercase; letter-spacing: .5px; }
+    .shape-btn.selected span { color: var(--verde); }
+
+    .detail-grid { display: grid; grid-template-columns: repeat(5,1fr); gap: 6px; }
+    .detail-btn {
+      display: flex; flex-direction: column; align-items: center; gap: 4px;
+      padding: 8px 3px 6px; border: 1.5px solid var(--c2); border-radius: 8px;
+      background: var(--campo2); cursor: pointer; transition: all var(--dur);
+    }
+    .detail-btn:hover { border-color: var(--c3); }
+    .detail-btn.selected { border-color: var(--verde); background: rgba(74,222,128,.07); }
+    .detail-btn span { font-size: 9px; font-weight: 700; color: var(--text2); text-transform: uppercase; letter-spacing: .3px; text-align: center; line-height: 1.2; }
+    .detail-btn.selected span { color: var(--verde); }
 
     /* ── MSGS ── */
     .msg { display: none; font-size: 13px; font-weight: 500; padding: 11px 14px; border-radius: 8px; margin-bottom: 16px; line-height: 1.45; }
@@ -125,7 +144,7 @@
     @keyframes girar { to{transform:rotate(360deg)} }
 
     /* ── DIVIDER ── */
-    .divider { border: none; border-top: 1px solid var(--c2); margin: 20px 0; }
+    .divider { border: none; border-top: 1px solid var(--c2); margin: 18px 0; }
 
     /* ── LOBBY ── */
     .sala-code-box { background: var(--campo2); border: 1.5px solid var(--c2); border-radius: var(--r); padding: 20px 16px; text-align: center; margin-bottom: 20px; }
@@ -136,18 +155,10 @@
     .p-titulo { font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--text2); margin-bottom: 10px; }
     .p-lista  { list-style: none; }
 
-    /* Card de participante no lobby */
     .p-card { display: flex; align-items: center; gap: 12px; padding: 12px 14px; background: var(--campo2); border: 1px solid var(--c2); border-radius: 8px; margin-bottom: 8px; transition: border-color var(--dur); }
     .p-card.tem-clube { border-color: rgba(74,222,128,.2); }
-
-    /* Escudo mini (hexagonal) */
-    .escudo-mini {
-      width: 44px; height: 48px; flex-shrink: 0;
-      clip-path: polygon(50% 0%, 100% 18%, 100% 65%, 50% 100%, 0% 65%, 0% 18%);
-      display: flex; align-items: center; justify-content: center;
-      font-family: 'Bebas Neue', sans-serif; font-size: 14px; letter-spacing: 1px;
-      background: var(--c2); color: var(--text2);
-    }
+    .p-escudo-wrap { width: 44px; height: 48px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
+    .p-escudo-vazio { width: 44px; height: 48px; flex-shrink: 0; background: var(--c2); border-radius: 6px; display: flex; align-items: center; justify-content: center; color: var(--text2); font-size: 18px; font-weight: 700; }
 
     .p-info { flex: 1; min-width: 0; }
     .p-clube-nome { font-size: 14px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -163,19 +174,18 @@
     .lobby-meu-nome { font-size: 12px; color: var(--text2); text-align: center; margin-top: 14px; }
     .lobby-meu-nome strong { color: var(--verde); }
 
-    /* ── EDITAR CLUBE (botão flutuante no lobby) ── */
-    .btn-edit-clube { display: flex; align-items: center; gap: 8px; width: 100%; padding: 12px 14px; border: 1px dashed var(--verde2); border-radius: var(--r); background: rgba(74,222,128,.05); color: var(--verde); font-family: 'Inter', sans-serif; font-size: 13px; font-weight: 600; cursor: pointer; transition: all var(--dur); margin-bottom: 16px; }
+    .btn-edit-clube { display: flex; align-items: center; gap: 10px; width: 100%; padding: 11px 14px; border: 1px dashed var(--verde2); border-radius: var(--r); background: rgba(74,222,128,.05); color: var(--verde); font-family: 'Inter', sans-serif; font-size: 13px; font-weight: 600; cursor: pointer; transition: all var(--dur); margin-bottom: 16px; }
     .btn-edit-clube:hover { background: rgba(74,222,128,.12); }
+    .btn-edit-clube .mini-wrap { width: 28px; height: 31px; flex-shrink: 0; display: flex; align-items: center; }
+    .btn-edit-clube .edit-icon { margin-left: auto; font-size: 14px; opacity: .7; }
 
-    .voltar { font-size: 13px; color: var(--text2); cursor: pointer; text-align: center; margin-top: 16px; transition: color var(--dur); }
-    .voltar:hover { color: var(--text); }
     .rodape { margin-top: 40px; font-size: 11px; font-weight: 500; letter-spacing: 1.5px; text-transform: uppercase; color: var(--c3); text-align: center; }
 
     @media (max-width: 460px) {
       .logo-title { font-size: 36px; }
       .sala-code-val { font-size: 36px; letter-spacing: 6px; }
-      .card { padding: 20px; }
-      .escudo-lg { width: 80px; height: 88px; font-size: 24px; }
+      .card { padding: 18px; }
+      .detail-grid { gap: 4px; }
     }
   </style>
 </head>
@@ -252,28 +262,30 @@
       <p class="card-label">Crie Seu Clube</p>
       <div id="msg-clube" class="msg"></div>
 
-      <!-- Preview ao vivo do escudo -->
+      <!-- Preview ao vivo -->
       <div class="escudo-preview-wrap">
-        <div class="escudo-lg" id="prev-escudo">FC</div>
+        <div id="prev-escudo"></div>
         <div class="escudo-nome-preview" id="prev-nome">Meu Clube</div>
         <span class="contraste-badge contraste-ok" id="prev-contraste">Contraste OK</span>
       </div>
 
+      <!-- Nome -->
       <div class="field">
         <label>Nome do Clube</label>
         <input type="text" id="f-clube-nome" placeholder="Ex: Thiago FC" maxlength="30"
                oninput="atualizarPreview()" />
       </div>
 
+      <!-- Cores -->
       <div class="color-row">
         <div class="field">
-          <label>Cor do Escudo</label>
+          <label>Fundo</label>
           <div class="color-input-wrap">
             <input type="color" id="f-cor-fundo" value="#1a3a5c" oninput="atualizarPreview()" />
           </div>
         </div>
         <div class="field">
-          <label>Cor do Texto</label>
+          <label>Texto</label>
           <div class="color-input-wrap">
             <input type="color" id="f-cor-texto" value="#f0c040" oninput="atualizarPreview()" />
           </div>
@@ -287,7 +299,16 @@
       </div>
 
       <hr class="divider" />
-      <button id="btn-clube" class="btn-acao" onclick="salvarClube()">Salvar Clube e Ir para o Lobby</button>
+
+      <!-- Forma do escudo -->
+      <div class="selector-label">Forma do Escudo</div>
+      <div id="shape-grid-container"></div>
+
+      <div class="selector-label" style="margin-top:14px;">Detalhe do Escudo</div>
+      <div id="detail-grid-container"></div>
+
+      <hr class="divider" />
+      <button id="btn-clube" class="btn-acao" onclick="salvarClube()">Salvar e Ir pro Lobby</button>
       <div class="spin" id="spin-clube"></div>
     </div>
   </div>
@@ -307,9 +328,9 @@
 
       <!-- Botão editar clube -->
       <button class="btn-edit-clube" onclick="editarClube()">
-        <span id="lby-escudo-mini-btn" style="font-family:'Bebas Neue',sans-serif;font-size:13px;">⬡</span>
+        <span class="mini-wrap" id="lby-mini-wrap"><span style="font-size:20px;color:var(--text2);">⬡</span></span>
         <span id="lby-btn-clube-txt">Criar meu clube</span>
-        <span style="margin-left:auto;font-size:16px;">✏️</span>
+        <span class="edit-icon">✏️</span>
       </button>
 
       <div class="p-titulo">Participantes</div>
@@ -336,6 +357,96 @@
   var API  = 'https://script.google.com/macros/s/AKfycbwnjcMCR6p40E3oGEfRo0lfSX6J_hnma9xrrKniSXGbPKzSfCPrHClYgUneHybjt585pw/exec';
   var S    = { roomId: null, userId: null, nomeSala: null, nick: null, dono: false, clubId: null, temClube: false };
   var poll = null;
+
+  // ── FORMAS E DETALHES ──
+  var SHAPES = [
+    { id:'classico', label:'Clássico', type:'path',
+      d:'M 12,8 L 88,8 L 88,70 L 50,104 L 12,70 Z' },
+    { id:'medieval', label:'Medieval', type:'path',
+      d:'M 8,8 L 92,8 L 92,64 Q 92,96 50,107 Q 8,96 8,64 Z' },
+    { id:'moderno',  label:'Moderno',  type:'path',
+      d:'M 24,8 L 76,8 L 96,24 L 96,72 L 50,107 L 4,72 L 4,24 Z' },
+    { id:'brasao',   label:'Brasão',   type:'path',
+      d:'M 50,4 L 88,12 L 97,58 Q 90,96 50,108 Q 10,96 3,58 L 12,12 Z' },
+    { id:'redondo',  label:'Redondo',  type:'circle',  cx:50, cy:55, r:48 },
+    { id:'oval',     label:'Oval',     type:'ellipse', cx:50, cy:55, rx:44, ry:51 }
+  ];
+
+  var DETAILS = [
+    { id:'simples',  label:'Simples',  d: null },
+    { id:'faixa',    label:'Faixa',    d: 'M 0,38 L 100,38 L 100,65 L 0,65 Z' },
+    { id:'diagonal', label:'Diagonal', d: 'M 0,0 L 60,0 L 100,55 L 100,110 L 40,110 L 0,55 Z' },
+    { id:'metade',   label:'Metade',   d: 'M 50,0 L 100,0 L 100,110 L 50,110 Z' },
+    { id:'topo',     label:'Topo',     d: 'M 0,0 L 100,0 L 100,40 L 0,40 Z' }
+  ];
+
+  var selectedShape  = 'classico';
+  var selectedDetail = 'simples';
+
+  // ── GERAÇÃO DE SVG DO ESCUDO ──
+  function shapeEl(sh, fill, stroke, sw) {
+    var f = ' fill="'+(fill||'none')+'"';
+    var s = stroke ? ' stroke="'+stroke+'" stroke-width="'+(sw||2)+'"' : '';
+    if (sh.type === 'circle')  return '<circle cx="'+sh.cx+'" cy="'+sh.cy+'" r="'+sh.r+'"'+f+s+'/>';
+    if (sh.type === 'ellipse') return '<ellipse cx="'+sh.cx+'" cy="'+sh.cy+'" rx="'+sh.rx+'" ry="'+sh.ry+'"'+f+s+'/>';
+    return '<path d="'+sh.d+'"'+f+s+'/>';
+  }
+
+  function clipEl(sh) {
+    if (sh.type === 'circle')  return '<circle cx="'+sh.cx+'" cy="'+sh.cy+'" r="'+sh.r+'"/>';
+    if (sh.type === 'ellipse') return '<ellipse cx="'+sh.cx+'" cy="'+sh.cy+'" rx="'+sh.rx+'" ry="'+sh.ry+'"/>';
+    return '<path d="'+sh.d+'"/>';
+  }
+
+  function gerarSVG(shapeId, detailId, bgColor, textColor, accentColor, iniciais, uid, w, h, fs) {
+    var sh  = SHAPES.find(function(s){return s.id===shapeId;}) || SHAPES[0];
+    var det = DETAILS.find(function(d){return d.id===detailId;}) || DETAILS[0];
+    var cid = 'c' + uid.replace(/[^a-zA-Z0-9]/g,'');
+    w = w||100; h = h||110; fs = fs||28;
+
+    var defs = '<defs><clipPath id="'+cid+'">'+clipEl(sh)+'</clipPath></defs>';
+    var bg   = shapeEl(sh, bgColor, null, 0);
+    var ov   = det.d ? '<path d="'+det.d+'" fill="'+accentColor+'" opacity="0.38" clip-path="url(#'+cid+')"/>' : '';
+    var bord = shapeEl(sh, 'none', accentColor, 2.5);
+    var txt  = iniciais
+      ? '<text x="50" y="59" text-anchor="middle" dominant-baseline="central" font-family="\'Bebas Neue\',\'Arial Black\',sans-serif" font-size="'+fs+'" font-weight="bold" fill="'+textColor+'" letter-spacing="2">'+iniciais+'</text>'
+      : '';
+    return '<svg viewBox="0 0 100 110" width="'+w+'" height="'+h+'" xmlns="http://www.w3.org/2000/svg">'+defs+bg+ov+bord+txt+'</svg>';
+  }
+
+  // ── RENDERIZAR SELETORES ──
+  function renderShapeGrid() {
+    var html = '<div class="shape-grid">';
+    SHAPES.forEach(function(sh) {
+      var svg = gerarSVG(sh.id, 'simples', '#162b1a', '', '#4ade80', '', 'shp'+sh.id, 48, 53, 0);
+      html += '<div class="shape-btn'+(selectedShape===sh.id?' selected':'')+'" onclick="selecionarShape(\''+sh.id+'\')">' +
+              svg + '<span>'+sh.label+'</span></div>';
+    });
+    document.getElementById('shape-grid-container').innerHTML = html + '</div>';
+  }
+
+  function renderDetailGrid() {
+    var bg  = document.getElementById('f-cor-fundo')   ? document.getElementById('f-cor-fundo').value   : '#1a3a5c';
+    var acc = document.getElementById('f-cor-detalhe') ? document.getElementById('f-cor-detalhe').value : '#ffffff';
+    var html = '<div class="detail-grid">';
+    DETAILS.forEach(function(det) {
+      var svg = gerarSVG(selectedShape, det.id, bg, '', acc, '', 'det'+det.id, 40, 44, 0);
+      html += '<div class="detail-btn'+(selectedDetail===det.id?' selected':'')+'" onclick="selecionarDetail(\''+det.id+'\')">' +
+              svg + '<span>'+det.label+'</span></div>';
+    });
+    document.getElementById('detail-grid-container').innerHTML = html + '</div>';
+  }
+
+  function selecionarShape(id) {
+    selectedShape = id;
+    renderShapeGrid();
+    atualizarPreview();
+  }
+
+  function selecionarDetail(id) {
+    selectedDetail = id;
+    atualizarPreview();
+  }
 
   // ── NAVEGAÇÃO ──
   function ir(id) {
@@ -373,9 +484,9 @@
   function criarSala() {
     var nome = v('f-nome-sala'), senha = document.getElementById('f-senha-criar').value;
     var nick = v('f-tecnico-criar'), max = document.getElementById('f-max').value;
-    if (!nome)             { msg('msg-criar','Informe o nome da sala.','erro'); return; }
-    if (senha.length < 3)  { msg('msg-criar','Senha precisa ter 3+ caracteres.','erro'); return; }
-    if (!nick)             { msg('msg-criar','Informe seu apelido de técnico.','erro'); return; }
+    if (!nome)            { msg('msg-criar','Informe o nome da sala.','erro'); return; }
+    if (senha.length < 3) { msg('msg-criar','Senha precisa ter 3+ caracteres.','erro'); return; }
+    if (!nick)            { msg('msg-criar','Informe seu apelido de técnico.','erro'); return; }
     loading('btn-criar','spin-criar',true);
     post({ action:'createRoom', nomeSala:nome, senha:senha, nomeTecnico:nick, maxHumanos:max })
       .then(function(res) {
@@ -407,21 +518,25 @@
   }
 
   // ── TELA CLUBE ──
-  function irParaClube() { ir('s-clube'); atualizarPreview(); }
+  function irParaClube() {
+    ir('s-clube');
+    renderShapeGrid();
+    atualizarPreview();
+  }
 
-  function editarClube() { stopPoll(); ir('s-clube'); atualizarPreview(); }
+  function editarClube() { stopPoll(); irParaClube(); }
 
   // ── PREVIEW AO VIVO ──
   function atualizarPreview() {
     var nome    = document.getElementById('f-clube-nome').value.trim() || 'Meu Clube';
     var fundo   = document.getElementById('f-cor-fundo').value;
     var texto   = document.getElementById('f-cor-texto').value;
+    var detalhe = document.getElementById('f-cor-detalhe').value;
     var iniciais = gerarIniciaisJS(nome);
 
-    document.getElementById('prev-escudo').style.background = fundo;
-    document.getElementById('prev-escudo').style.color      = texto;
-    document.getElementById('prev-escudo').textContent      = iniciais;
-    document.getElementById('prev-nome').textContent        = nome;
+    document.getElementById('prev-escudo').innerHTML =
+      gerarSVG(selectedShape, selectedDetail, fundo, texto, detalhe, iniciais, 'prev', 100, 110, 28);
+    document.getElementById('prev-nome').textContent = nome;
 
     var ratio = contrastRatioJS(fundo, texto);
     var badge = document.getElementById('prev-contraste');
@@ -432,6 +547,8 @@
       badge.className = 'contraste-badge contraste-ruim';
       badge.textContent = 'Contraste ruim (' + ratio.toFixed(1) + ':1) — ajuste as cores';
     }
+
+    renderDetailGrid(); // sincroniza detalhes com as cores atuais
   }
 
   // ── SALVAR CLUBE ──
@@ -448,7 +565,8 @@
 
     loading('btn-clube','spin-clube',true);
     post({ action:'saveClubIdentity', roomId:S.roomId, userId:S.userId,
-           nomeClube:nome, primaryColor:fundo, textColor:texto, accentColor:detalhe })
+           nomeClube:nome, primaryColor:fundo, textColor:texto, accentColor:detalhe,
+           shapeId: selectedShape, detailId: selectedDetail })
       .then(function(res) {
         loading('btn-clube','spin-clube',false);
         if (res.success) {
@@ -493,18 +611,17 @@
   function atualizarBtnClube(clubes) {
     var meuClube = clubes.find(function(c) { return c.userId === S.userId; });
     var btnTxt   = document.getElementById('lby-btn-clube-txt');
-    var escudoBtn = document.getElementById('lby-escudo-mini-btn');
+    var miniWrap = document.getElementById('lby-mini-wrap');
     if (meuClube) {
       btnTxt.textContent = meuClube.nomeClube;
-      escudoBtn.textContent = meuClube.iniciais;
-      escudoBtn.style.color = meuClube.textColor;
-      escudoBtn.style.background = meuClube.primaryColor;
-      escudoBtn.style.padding = '2px 6px';
-      escudoBtn.style.borderRadius = '4px';
+      miniWrap.innerHTML = gerarSVG(
+        meuClube.shapeId || 'classico', meuClube.detailId || 'simples',
+        meuClube.primaryColor, meuClube.textColor, meuClube.accentColor || '#ffffff',
+        meuClube.iniciais, 'btn', 28, 31, 10
+      );
     } else {
       btnTxt.textContent = 'Criar meu clube';
-      escudoBtn.textContent = '⬡';
-      escudoBtn.style.background = 'transparent';
+      miniWrap.innerHTML = '<span style="font-size:20px;color:var(--text2);">⬡</span>';
     }
   }
 
@@ -520,20 +637,21 @@
       var li    = document.createElement('li');
       li.className = 'p-card' + (clube ? ' tem-clube' : '');
 
-      // Escudo mini
       var escHtml;
       if (clube) {
-        escHtml = '<div class="escudo-mini" style="background:' + clube.primaryColor +
-                  ';color:' + clube.textColor + '">' + esc(clube.iniciais) + '</div>';
+        var svgMini = gerarSVG(
+          clube.shapeId || 'classico', clube.detailId || 'simples',
+          clube.primaryColor, clube.textColor, clube.accentColor || '#ffffff',
+          clube.iniciais, clube.clubId || p.userId, 44, 48, 14
+        );
+        escHtml = '<div class="p-escudo-wrap">' + svgMini + '</div>';
       } else {
-        escHtml = '<div class="escudo-mini">?</div>';
+        escHtml = '<div class="p-escudo-vazio">?</div>';
       }
 
-      // Nomes
       var clubeNome   = clube ? esc(clube.nomeClube) : '<span style="color:var(--text2)">Sem clube</span>';
       var tecnicoNome = esc(p.nomeTecnico);
 
-      // Tags
       var tags = '';
       if (p.userId === ownerId)  tags += '<span class="tag tag-dono">Dono</span>';
       if (p.userId === S.userId) tags += '<span class="tag tag-voce">Você</span>';
@@ -575,6 +693,7 @@
 
   // ── INIT ──
   window.addEventListener('DOMContentLoaded', function() {
+    renderShapeGrid();
     atualizarPreview();
   });
 </script>
