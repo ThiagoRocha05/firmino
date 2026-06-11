@@ -566,6 +566,28 @@ section.ativo{display:block}
 .admin-login-sub{font-size:.82rem;color:var(--muted);margin-bottom:24px}
 .admin-empty{text-align:center;padding:32px;color:var(--muted);font-size:.85rem}
 
+/* ═══════════════════════════════════════════════════════
+   ETAPA 5 — CARD DE ESQUADRÃO HISTÓRICO
+════════════════════════════════════════════════════════ */
+.team-era-card{background:var(--black);color:var(--cream);border-radius:var(--r);padding:14px;margin-bottom:10px;border:1px solid rgba(255,255,255,.12)}
+.team-era-kicker{font-size:.58rem;font-weight:800;letter-spacing:.18em;text-transform:uppercase;color:rgba(240,244,248,.58);margin-bottom:4px}
+.team-era-name{font-family:'Bebas Neue',sans-serif;font-size:2rem;letter-spacing:.04em;line-height:1;color:var(--cream)}
+.team-era-meta{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.team-era-pill{font-size:.6rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;border:1px solid rgba(255,255,255,.22);border-radius:999px;padding:3px 8px;color:rgba(240,244,248,.78)}
+.team-era-pill.tier-s{background:var(--red);color:white;border-color:var(--red)}
+.team-era-note{font-size:.7rem;color:rgba(240,244,248,.62);line-height:1.35;margin-top:8px}
+.pick-historic-source{font-size:.66rem;color:var(--muted);margin-top:5px;letter-spacing:.04em;text-transform:uppercase}
+.pick-lock-list{margin-top:10px;border-top:1px solid var(--divider);padding-top:10px}
+.pick-lock-title{font-size:.6rem;font-weight:800;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+.locked-player{font-size:.72rem;color:var(--muted);text-decoration:line-through;margin-bottom:3px}
+.placement-hint{margin-top:10px;font-size:.72rem;color:var(--red);font-weight:700;line-height:1.35}
+.reserve-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:6px;margin-top:10px}
+.reserve-btn{border:1.5px solid var(--divider);background:var(--white);color:var(--black);border-radius:var(--r);font-size:.7rem;min-height:34px;padding:7px 8px;cursor:pointer;font-weight:700}
+.reserve-btn.sel{background:var(--red);border-color:var(--red);color:white}
+.reserve-btn[disabled]{opacity:.35;cursor:not-allowed}
+.campo-slot-compativel circle{fill:rgba(245,166,35,.45)!important;stroke:rgba(245,166,35,.95)!important;stroke-width:2!important}
+.campo-slot-incompativel{opacity:.28}
+
 </style>
 </head>
 <body>
@@ -846,7 +868,7 @@ section.ativo{display:block}
         PICK <span id="dh-pick">1</span><span>/</span><span id="dh-total">180</span>
       </div>
       <div class="draft-h-cap">
-        CAP <span class="draft-h-cap-val" id="dh-cap">200</span>
+        <span id="dh-cap-label">SORTEIO HISTÓRICO</span>
       </div>
     </div>
     <div class="draft-h-right">
@@ -863,7 +885,7 @@ section.ativo{display:block}
     <!-- Coluna Picks -->
     <div class="draft-picks-col">
       <div class="picks-title">
-        <span class="label">Suas Opções</span>
+        <span class="label">Esquadrão Sorteado</span>
         <span class="label" id="pick-rodada-lbl">Rodada 1</span>
       </div>
       <div id="pick-timer-wrap" class="pick-timer-wrap dn">
@@ -1440,9 +1462,8 @@ function renderDraftState(r) {
   document.getElementById('dh-total').textContent = totalPicks;
   document.getElementById('pick-rodada-lbl').textContent = 'Rodada '+rodada+'/'+D.totalRodadas;
 
-  var capUsado = D.salarios[D.meuClubeId] || 0;
-  var capRest  = D.salaryCap - capUsado;
-  document.getElementById('dh-cap').textContent = capRest;
+  var dhCap = document.getElementById('dh-cap');
+  if (dhCap) dhCap.textContent = 'HISTÓRICO';
 
   var vezBadge = document.getElementById('dh-vez-badge');
   if (D.isMinhaVez) {
@@ -1486,15 +1507,7 @@ function renderDraftState(r) {
       iniciarPickTimer();
     }
     if (!D.choices.length && !D.choiceLoading) {
-      if (D.posFilter) {
-        carregarChoices();
-      } else {
-        document.getElementById('picks-lista').innerHTML =
-          '<div class="picks-loading" style="text-align:center;padding:20px 10px">' +
-          '<strong style="display:block;font-size:.9rem;color:var(--black);margin-bottom:6px">É a sua vez!</strong>' +
-          '<span style="color:var(--muted);font-size:.82rem">Clique em um slot vazio no campo para escolher um jogador para aquela posição.</span>' +
-          '</div>';
-      }
+      carregarChoices();
     }
     // Se D.choices.length > 0 → não toca no painel (choices já renderizadas)
   }
@@ -1559,54 +1572,97 @@ function confirmarFormacao() {
 function carregarChoices() {
   if (D.choiceLoading) return;
   D.choiceLoading = true;
-  document.getElementById('picks-lista').innerHTML = '<div class="picks-loading">Sorteando opções...</div>';
+  document.getElementById('picks-lista').innerHTML = '<div class="picks-loading">Sorteando esquadrão histórico...</div>';
   var reqParams = { action:'getDraftChoices', roomId:S.roomId, userId:S.userId, clubId:D.meuClubeId };
-  if (D.posFilter) reqParams.posFilter = D.posFilter;
   get(reqParams, function(r) {
     D.choiceLoading = false;
     if (!r.success) { document.getElementById('picks-lista').innerHTML = '<div class="picks-loading">'+esc(r.error)+'</div>'; return; }
     D.choices = r.choices || [];
+    D.teamEra = r.teamEra || null;
+    D.lockedPlayers = r.lockedPlayers || [];
+    D.selectedPlayer = null;
+    D.posSlotAtivo = null;
     renderChoices();
+    atualizarCampo();
   });
 }
 
 function renderChoices() {
-  var capUsado = D.salarios[D.meuClubeId] || 0;
-  var capRest  = D.salaryCap - capUsado;
   var html = '';
-  D.choices.forEach(function(p, i) {
-    var pode = p.salaryCost <= capRest;
-    var ovrCls = p.overall>=90?'ovr-alto':p.overall>=80?'ovr-med':'';
-    var posCls = 'pos-'+(p.grupoPosicao||'MEI');
-    var sel = D.selectedPlayer && D.selectedPlayer.playerId===p.playerId;
-    html += '<div class="pick-card'+(sel?' selected':'')+(pode?'':' disabled-pick')+'" onclick="selecionarPick('+i+')">';
-    html += '<div class="pick-card-top">';
-    html += '<div class="pick-ovr '+ovrCls+'">'+p.overall+'</div>';
-    html += '<div class="pick-info"><div class="pick-nome">'+esc(p.apelido||p.nomeReal)+'</div>';
-    html += '<div class="pick-nome-real">'+esc(p.nomeReal)+'</div></div>';
-    html += '<span class="pick-pos-pill '+posCls+'">'+(p.grupoPosicao||'')+'</span>';
+  if (D.teamEra) {
+    var tier = (D.teamEra.tier || 'B').toString().toLowerCase();
+    html += '<div class="team-era-card">';
+    html += '<div class="team-era-kicker">Esquadrão sorteado</div>';
+    html += '<div class="team-era-name">'+esc(D.teamEra.nomeExibicao || 'Time histórico')+'</div>';
+    html += '<div class="team-era-meta">';
+    html += '<span class="team-era-pill tier-'+tier+'">Tier '+esc(D.teamEra.tier||'B')+'</span>';
+    html += '<span class="team-era-pill">'+esc(D.teamEra.pais||'')+'</span>';
+    html += '<span class="team-era-pill">'+esc(D.teamEra.ano||'')+'</span>';
     html += '</div>';
-    html += '<div class="pick-salary">Custo: <strong>'+p.salaryCost+' pts</strong> · Cap restante após pick: '+(capRest-p.salaryCost)+' pts</div>';
+    html += '<div class="team-era-note">'+esc(D.teamEra.competicaoReferencia||'Escolha um jogador disponível desse esquadrão.')+'</div>';
     html += '</div>';
-  });
-  if (!html && D.posFilter) html = '<div class="picks-loading">Nenhum '+D.posFilter+' disponível com seu salary cap.</div>';
-  if (!html && !D.posFilter) html = '<div class="picks-loading" style="text-align:center;padding:20px 10px;color:var(--muted)"><strong style="display:block;font-size:.9rem;color:var(--black);margin-bottom:6px">Clique em uma posição no campo →</strong>Toque em um slot vazio para ver os jogadores disponíveis para aquela posição.</div>';
+  }
+  if (D.choices && D.choices.length) {
+    D.choices.forEach(function(p, i) {
+      var ovrCls = p.overall>=90?'ovr-alto':p.overall>=80?'ovr-med':'';
+      var posCls = 'pos-'+(p.grupoPosicao||'MEI');
+      var sel = D.selectedPlayer && D.selectedPlayer.playerId===p.playerId;
+      html += '<div class="pick-card'+(sel?' selected':'')+'" onclick="selecionarPick('+i+')">';
+      html += '<div class="pick-card-top">';
+      html += '<div class="pick-ovr '+ovrCls+'">'+p.overall+'</div>';
+      html += '<div class="pick-info"><div class="pick-nome">'+esc(p.apelido||p.nomeReal)+'</div>';
+      html += '<div class="pick-nome-real">'+esc(p.nomeReal)+'</div>';
+      html += '<div class="pick-historic-source">'+esc(p.posicoesElegiveis||p.grupoPosicao||'')+'</div></div>';
+      html += '<span class="pick-pos-pill '+posCls+'">'+(p.grupoPosicao||'')+'</span>';
+      html += '</div>';
+      if (sel) html += '<div class="placement-hint">Agora clique em uma bolinha compatível no campo ou escolha um banco abaixo.</div>' + renderReserveButtons();
+      html += '</div>';
+    });
+  } else {
+    html += '<div class="picks-loading">Nenhum jogador disponível neste esquadrão. Aguarde novo sorteio.</div>';
+  }
+  if (D.lockedPlayers && D.lockedPlayers.length) {
+    html += '<div class="pick-lock-list"><div class="pick-lock-title">Já draftados neste esquadrão</div>';
+    D.lockedPlayers.forEach(function(p){ html += '<div class="locked-player">'+esc(p.apelido||p.nomeReal)+'</div>'; });
+    html += '</div>';
+  }
   document.getElementById('picks-lista').innerHTML = html;
-  document.getElementById('btn-confirmar-pick').classList.toggle('dn', !D.selectedPlayer);
+  var podeConfirmar = !!(D.selectedPlayer && D.posSlotAtivo !== null && D.posSlotAtivo !== undefined);
+  document.getElementById('btn-confirmar-pick').classList.toggle('dn', !podeConfirmar);
+}
+
+function renderReserveButtons() {
+  var picks = D.picksFeitos[D.meuClubeId] || [];
+  var html = '<div class="reserve-grid">';
+  for (var i=11;i<18;i++) {
+    var ocupado = !!picks[i];
+    var sel = D.posSlotAtivo === i;
+    html += '<button class="reserve-btn'+(sel?' sel':'')+'" '+(ocupado?'disabled':'')+' onclick="selecionarBanco('+i+');event.stopPropagation();">Banco '+(i-10)+'</button>';
+  }
+  html += '</div>';
+  return html;
 }
 
 function selecionarPick(i) {
-  var capUsado = D.salarios[D.meuClubeId] || 0;
-  var capRest  = D.salaryCap - capUsado;
   var p = D.choices[i];
-  if (!p || p.salaryCost > capRest) { toast('Cap insuficiente.', 'erro'); return; }
+  if (!p) return;
   D.selectedPlayer = p;
+  D.posSlotAtivo = null;
   renderChoices();
+  atualizarCampo();
+}
+
+function selecionarBanco(i) {
+  if (!D.selectedPlayer) return;
+  D.posSlotAtivo = i;
+  renderChoices();
+  atualizarCampo();
   document.getElementById('btn-confirmar-pick').classList.remove('dn');
 }
 
 function confirmarPick() {
   if (!D.selectedPlayer) return;
+  if (D.posSlotAtivo === null || D.posSlotAtivo === undefined) { toast('Escolha onde encaixar o jogador no campo ou no banco.', 'erro'); return; }
   pararPickTimer();
   var payload = { roomId:S.roomId, userId:S.userId, clubId:D.meuClubeId, playerId:D.selectedPlayer.playerId };
   if (D.posSlotAtivo !== null && D.posSlotAtivo !== undefined) payload.slotIndex = D.posSlotAtivo;
@@ -1620,7 +1676,7 @@ function confirmarPick() {
       atualizarCampo();
       atualizarBoxScore();
     }
-    D.selectedPlayer = null; D.choices = []; D.choiceLoading = false; D.posFilter = null; D.posSlotAtivo = null;
+    D.selectedPlayer = null; D.choices = []; D.teamEra = null; D.lockedPlayers = []; D.choiceLoading = false; D.posFilter = null; D.posSlotAtivo = null;
     D._eraMinhavezAntes = false;
     document.getElementById('btn-confirmar-pick').classList.add('dn');
     document.getElementById('picks-lista').innerHTML = '<div class="picks-loading">Aguardando bots...</div>';
@@ -1633,7 +1689,7 @@ function skipPick() {
   post('skipPick', { roomId:S.roomId, userId:S.userId, clubId:D.meuClubeId }, function(r) {
     if (!r.success) { toast(r.error,'erro'); iniciarPickTimer(); return; }
     toast('Vez passada.', 'info');
-    D.selectedPlayer = null; D.choices = []; D.choiceLoading = false; D.posFilter = null; D.posSlotAtivo = null;
+    D.selectedPlayer = null; D.choices = []; D.teamEra = null; D.lockedPlayers = []; D.choiceLoading = false; D.posFilter = null; D.posSlotAtivo = null;
     D._eraMinhavezAntes = false;
     document.getElementById('picks-lista').innerHTML = '<div class="picks-loading">Aguardando bots...</div>';
     _iniciarRapidPoll();
@@ -1660,12 +1716,11 @@ function _iniciarRapidPoll() {
 //  BOX SCORE
 // ════════════════════════════════════════════════
 function atualizarBoxScore() {
-  var capUsado = D.salarios[D.meuClubeId] || 0;
-  var capRest  = D.salaryCap - capUsado;
-  var pct = Math.min(100, (capUsado/D.salaryCap)*100);
+  var picksAtual = (D.picksFeitos[D.meuClubeId] || []).filter(function(x){return !!x;}).length;
+  var pct = Math.min(100, (picksAtual/18)*100);
   document.getElementById('bs-cap-fill').style.width = pct+'%';
-  document.getElementById('bs-cap-usado').textContent = capUsado+' pts usados';
-  document.getElementById('bs-cap-rest').textContent  = capRest+' pts restantes';
+  document.getElementById('bs-cap-usado').textContent = picksAtual+' / 18 jogadores';
+  document.getElementById('bs-cap-rest').textContent  = 'sem salary cap';
 
   // Lista de picks — usa slots da formação escolhida + banco
   var picks = D.picksFeitos[D.meuClubeId] || [];
@@ -1710,9 +1765,11 @@ function atualizarCampo() {
       html += '<text x="'+cx+'" y="'+(cy+8)+'" text-anchor="middle" font-size="6" fill="'+(meu?meu.textColor:'#fff')+'" opacity=".7">'+p.overall+'</text>';
       html += '</g>';
     } else if (isMinhaVez) {
-      // slot vazio e é minha vez — clicável
+      // slot vazio e é minha vez — clicável. Se jogador estiver selecionado, destaca compatibilidade.
       var isAtivo = D.posSlotAtivo === i;
-      html += '<g class="campo-slot-btn'+(isAtivo?' campo-slot-ativo':'')+'" onclick="clicarSlot('+i+')">';
+      var comp = !D.selectedPlayer || playerFitsSlot(D.selectedPlayer, slot);
+      var cls = 'campo-slot-btn'+(isAtivo?' campo-slot-ativo':'')+(D.selectedPlayer && comp?' campo-slot-compativel':'')+(D.selectedPlayer && !comp?' campo-slot-incompativel':'');
+      html += '<g class="'+cls+'" onclick="clicarSlot('+i+')">';
       html += '<circle cx="'+cx+'" cy="'+cy+'" r="14" fill="'+(isAtivo?'rgba(232,93,38,.5)':'rgba(255,255,255,.12)')+'" stroke="'+(isAtivo?'rgba(232,93,38,.9)':'rgba(255,255,255,.4)')+'" stroke-width="'+(isAtivo?2:1)+'"/>';
       html += '<text x="'+cx+'" y="'+(cy+4)+'" text-anchor="middle" font-size="7" font-weight="700" fill="'+(isAtivo?'#fff':'rgba(255,255,255,.7)')+'">'+slot.label+'</text>';
       html += '</g>';
@@ -1730,15 +1787,27 @@ function atualizarCampo() {
 function clicarSlot(i) {
   if (!D.isMinhaVez) return;
   var slot = CAMPO_POS[i];
-  D.posSlotAtivo = i;
-  D.posFilter = slot.pos; // 'GOL','ZAG','LAT','VOL','MEI','ATA'
-  atualizarCampo();
-  // Força recarregar choices com novo filtro de posição
-  D.choiceLoading = false;
-  D.choices = [];
-  carregarChoices();
+  if (D.selectedPlayer) {
+    if (!playerFitsSlot(D.selectedPlayer, slot)) { toast('Esse jogador não é compatível com essa posição.', 'erro'); return; }
+    D.posSlotAtivo = i;
+    atualizarCampo();
+    renderChoices();
+    document.getElementById('btn-confirmar-pick').classList.remove('dn');
+    return;
+  }
+  toast('Primeiro escolha um jogador do esquadrão sorteado.', 'info');
 }
 
+function playerFitsSlot(p, slot) {
+  if (!p || !slot) return false;
+  var elig = (p.posicoesElegiveis || p.grupoPosicao || '').toUpperCase().split(',').map(function(x){return x.trim();});
+  var s = (slot.pos || slot.label || '').toUpperCase();
+  if (elig.indexOf(s) !== -1) return true;
+  if ((s === 'ZAG' || s === 'LAT') && (elig.indexOf('DEF') !== -1 || elig.indexOf('ZAG') !== -1 || elig.indexOf('LAT') !== -1)) return true;
+  if ((s === 'VOL' || s === 'MEI') && (elig.indexOf('MEI') !== -1 || elig.indexOf('VOL') !== -1)) return true;
+  if (s === 'ATA' && elig.indexOf('ATA') !== -1) return true;
+  return false;
+}
 
 // ════════════════════════════════════════════════
 //  PICK TIMER (60s por rodada)
@@ -1786,9 +1855,7 @@ function _atualizarTimerUI() {
 
 function _autoPickRandom() {
   if (!D.isMinhaVez) return;
-  var capUsado = D.salarios[D.meuClubeId] || 0;
-  var capRest  = D.salaryCap - capUsado;
-  var disponiveis = D.choices.filter(function(p) { return p.salaryCost <= capRest; });
+  var disponiveis = D.choices || [];
   if (!disponiveis.length) {
     toast('Tempo esgotado — passando a vez.', 'info');
     skipPick();
