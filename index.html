@@ -365,6 +365,16 @@ section.ativo{display:block}
 .bs-nome.vazio{color:var(--muted);font-style:italic;font-weight:400}
 .bs-ovr{font-size:.7rem;font-weight:700;color:var(--black);flex-shrink:0}
 
+
+/* ─── PICK TIMER ─────────────────────────────────────── */
+.pick-timer-wrap{padding:6px 14px 4px;background:var(--cream2);border-bottom:1px solid var(--divider)}
+.pick-timer-bar-bg{height:5px;background:var(--divider);border-radius:3px;overflow:hidden;margin-bottom:3px}
+.pick-timer-bar{height:5px;border-radius:3px;transition:width .9s linear,background .3s;background:var(--green)}
+.pick-timer-bar.warn{background:var(--gold)}
+.pick-timer-bar.danger{background:var(--red)}
+.pick-timer-label{font-size:.68rem;font-weight:600;letter-spacing:.08em;color:var(--muted);display:flex;justify-content:space-between}
+.pick-timer-label.danger{color:var(--red)}
+
 /* ─── TEMPO ──────────────────────────────────────────── */
 .tempo-banner{
   background:#FFF8E1;border-bottom:2px solid var(--gold);
@@ -465,6 +475,64 @@ section.ativo{display:block}
 .campo-slot-btn:hover circle{fill:rgba(255,255,255,.28)!important}
 .campo-slot-ativo circle{fill:var(--red)!important;stroke:var(--red)!important}
 
+/* ═══════════════════════════════════════════════════════
+   ADMIN PANEL
+═══════════════════════════════════════════════════════ */
+.admin-topo{
+  background:#0D1B2A;color:#fff;padding:12px 18px;
+  display:flex;align-items:center;justify-content:space-between;
+  position:sticky;top:0;z-index:100;
+}
+.admin-topo-logo{font-family:'Bebas Neue',sans-serif;font-size:1.1rem;letter-spacing:.1em;color:#E85D26}
+.admin-topo-tag{font-size:.6rem;font-weight:700;letter-spacing:.18em;background:#E85D26;
+  color:#fff;padding:2px 8px;border-radius:20px;text-transform:uppercase}
+.admin-body{max-width:680px;margin:0 auto;padding:18px 16px 60px}
+.admin-stats-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:20px}
+@media(min-width:480px){.admin-stats-grid{grid-template-columns:repeat(6,1fr)}}
+.admin-stat{background:#fff;border:1px solid var(--divider);border-radius:6px;padding:10px 8px;text-align:center}
+.admin-stat-n{font-family:'Bebas Neue',sans-serif;font-size:1.8rem;color:var(--black);line-height:1}
+.admin-stat-l{font-size:.6rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-top:2px}
+.admin-section-title{font-family:'Bebas Neue',sans-serif;font-size:1.3rem;letter-spacing:.06em;
+  color:var(--black);margin-bottom:10px;display:flex;align-items:center;gap:10px}
+.admin-section-title::after{content:'';flex:1;height:1px;background:var(--divider)}
+.admin-room-card{
+  background:#fff;border:1px solid var(--divider);border-radius:6px;
+  padding:14px;margin-bottom:10px;
+}
+.admin-room-head{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:8px}
+.admin-room-id{font-family:'Courier New',monospace;font-size:.8rem;font-weight:700;
+  letter-spacing:.12em;color:var(--black)}
+.admin-room-nome{font-size:.88rem;font-weight:600;color:var(--black);margin-top:1px}
+.admin-room-meta{display:flex;flex-wrap:wrap;gap:6px;font-size:.7rem;color:var(--muted);margin-bottom:10px}
+.admin-room-meta span{display:inline-flex;align-items:center;gap:3px}
+.admin-badge-status{
+  display:inline-flex;align-items:center;padding:3px 9px;border-radius:20px;
+  font-size:.62rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+  white-space:nowrap;flex-shrink:0;
+}
+.status-lobby{background:#E3F2FD;color:#0D47A1}
+.status-draft{background:#E8F5E9;color:#1B5E20}
+.status-encerrada,.status-expirada{background:#FFEBEE;color:#B71C1C}
+.admin-room-actions{display:flex;gap:8px;flex-wrap:wrap}
+.admin-btn{
+  padding:7px 14px;border:none;border-radius:4px;cursor:pointer;
+  font-size:.75rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;
+  transition:all .12s;
+}
+.admin-btn-danger{background:#FFEBEE;color:#B71C1C;border:1px solid #FFCDD2}
+.admin-btn-danger:hover{background:#B71C1C;color:#fff}
+.admin-btn-sec{background:var(--cream2);color:var(--black);border:1px solid var(--divider)}
+.admin-btn-sec:hover{background:var(--black);color:#fff}
+.admin-btn-warn{background:#FFF8E1;color:#E65100;border:1px solid #FFE0B2}
+.admin-btn-warn:hover{background:#E65100;color:#fff}
+.admin-inativo{color:#B71C1C;font-weight:700}
+/* login */
+.admin-login-wrap{max-width:360px;margin:60px auto;padding:0 20px}
+.admin-login-title{font-family:'Bebas Neue',sans-serif;font-size:2.2rem;color:var(--black);
+  letter-spacing:.04em;margin-bottom:4px}
+.admin-login-sub{font-size:.82rem;color:var(--muted);margin-bottom:24px}
+.admin-empty{text-align:center;padding:32px;color:var(--muted);font-size:.85rem}
+
 </style>
 </head>
 <body>
@@ -542,7 +610,7 @@ section.ativo{display:block}
 ══════════════════════════════════════ -->
 <section id="s-criar">
   <div class="topo">
-    <div><div class="topo-logo">ERA UMA VEZ</div><div class="topo-sub">Criar Sala</div></div>
+    <div><div class="topo-logo" onclick="adminTap()" style="cursor:default">ERA UMA VEZ</div><div class="topo-sub">Criar Sala</div></div>
   </div>
   <div class="form-wrap">
     <button class="back-btn" onclick="ir('s-home')">Voltar</button>
@@ -764,6 +832,10 @@ section.ativo{display:block}
       <div class="picks-title">
         <span class="label">Suas Opções</span>
         <span class="label" id="pick-rodada-lbl">Rodada 1</span>
+      </div>
+      <div id="pick-timer-wrap" class="pick-timer-wrap dn">
+        <div class="pick-timer-bar-bg"><div id="pick-timer-bar" class="pick-timer-bar" style="width:100%"></div></div>
+        <div class="pick-timer-label" id="pick-timer-label"><span>TEMPO PARA ESCOLHER</span><span id="pick-timer-sec">60s</span></div>
       </div>
       <div id="picks-lista">
         <div class="picks-loading">Aguardando sorteio...</div>
@@ -1350,16 +1422,44 @@ function renderDraftState(r) {
   atualizarBoxScore();
   atualizarCampo();
 
-  // Choices — player clica num slot no campo para filtrar por posição
-  if (D.isMinhaVez && !D.choices.length && !D.choiceLoading) {
-    document.getElementById('picks-lista').innerHTML =
-      '<div class="picks-loading" style="text-align:center;padding:20px 10px"><strong style="display:block;font-size:.9rem;color:var(--black);margin-bottom:6px">É a sua vez!</strong><span style="color:var(--muted);font-size:.82rem">Clique em um slot vazio no campo para escolher um jogador para aquela posição.</span></div>';
-  } else if (D.isMinhaVez && D.posFilter && !D.choiceLoading) {
-    carregarChoices();
-  } else if (!D.isMinhaVez) {
-    document.getElementById('picks-lista').innerHTML =
-      '<div class="picks-loading">Aguardando o pick de '+vezBadge.textContent+'...</div>';
+  // Choices — detecta troca de turno para iniciar/parar timer
+  var eraMinhavezAntes = D._eraMinhavezAntes !== undefined ? D._eraMinhavezAntes : false;
+  var trocouParaMim    = D.isMinhaVez && !eraMinhavezAntes;
+  var trocouParaOutro  = !D.isMinhaVez && eraMinhavezAntes;
+  D._eraMinhavezAntes  = D.isMinhaVez;
+
+  if (!D.isMinhaVez) {
+    // Turno de outro clube — limpa painel e para timer
+    if (trocouParaOutro) {
+      pararPickTimer();
+      D.choices = []; D.posFilter = null; D.posSlotAtivo = null; D.choiceLoading = false;
+    }
+    if (!D.choices.length) {
+      document.getElementById('picks-lista').innerHTML =
+        '<div class="picks-loading">Aguardando o pick de ' + vezBadge.textContent + '...</div>';
+    }
     document.getElementById('btn-confirmar-pick').classList.add('dn');
+  } else {
+    // É minha vez
+    if (trocouParaMim) {
+      // Acabou de virar minha vez — reseta estado e inicia timer
+      D.choices = []; D.posFilter = null; D.posSlotAtivo = null; D.choiceLoading = false;
+      D.selectedPlayer = null;
+      document.getElementById('btn-confirmar-pick').classList.add('dn');
+      iniciarPickTimer();
+    }
+    if (!D.choices.length && !D.choiceLoading) {
+      if (D.posFilter) {
+        carregarChoices();
+      } else {
+        document.getElementById('picks-lista').innerHTML =
+          '<div class="picks-loading" style="text-align:center;padding:20px 10px">' +
+          '<strong style="display:block;font-size:.9rem;color:var(--black);margin-bottom:6px">É a sua vez!</strong>' +
+          '<span style="color:var(--muted);font-size:.82rem">Clique em um slot vazio no campo para escolher um jogador para aquela posição.</span>' +
+          '</div>';
+      }
+    }
+    // Se D.choices.length > 0 → não toca no painel (choices já renderizadas)
   }
 
   // Draft concluído?
@@ -1413,7 +1513,7 @@ function confirmarFormacao() {
   atualizarCampo();
   if (D.pollDraft) clearInterval(D.pollDraft);
   pollDraft();
-  D.pollDraft = setInterval(pollDraft, 4000);
+  D.pollDraft = setInterval(pollDraft, 6000);
 }
 
 // ════════════════════════════════════════════════
@@ -1470,20 +1570,24 @@ function selecionarPick(i) {
 
 function confirmarPick() {
   if (!D.selectedPlayer) return;
+  pararPickTimer();
   post('makePick', { roomId:S.roomId, userId:S.userId, clubId:D.meuClubeId, playerId:D.selectedPlayer.playerId }, function(r) {
-    if (!r.success) { toast(r.error,'erro'); return; }
+    if (!r.success) { toast(r.error,'erro'); iniciarPickTimer(); return; } // retoma timer se der erro
     toast('Pick confirmado: '+esc(D.selectedPlayer.apelido||D.selectedPlayer.nomeReal), 'ok');
-    D.selectedPlayer = null; D.choiceLoading = false; D.posFilter = null; D.posSlotAtivo = null;
+    D.selectedPlayer = null; D.choices = []; D.choiceLoading = false; D.posFilter = null; D.posSlotAtivo = null;
+    D._eraMinhavezAntes = false; // força detecção de troca no próximo poll
     document.getElementById('btn-confirmar-pick').classList.add('dn');
     pollDraft();
   });
 }
 
 function skipPick() {
+  pararPickTimer();
   post('skipPick', { roomId:S.roomId, userId:S.userId, clubId:D.meuClubeId }, function(r) {
-    if (!r.success) { toast(r.error,'erro'); return; }
+    if (!r.success) { toast(r.error,'erro'); iniciarPickTimer(); return; }
     toast('Vez passada.', 'info');
-    D.selectedPlayer = null; D.choiceLoading = false; D.posFilter = null; D.posSlotAtivo = null;
+    D.selectedPlayer = null; D.choices = []; D.choiceLoading = false; D.posFilter = null; D.posSlotAtivo = null;
+    D._eraMinhavezAntes = false;
     pollDraft();
   });
 }
@@ -1566,6 +1670,67 @@ function clicarSlot(i) {
   D.choiceLoading = false;
   D.choices = [];
   carregarChoices();
+}
+
+
+// ════════════════════════════════════════════════
+//  PICK TIMER (60s por rodada)
+// ════════════════════════════════════════════════
+var PTIMER = { sec: 60, max: 60, iv: null, ativo: false };
+
+function iniciarPickTimer() {
+  pararPickTimer();
+  PTIMER.sec = PTIMER.max;
+  PTIMER.ativo = true;
+  _atualizarTimerUI();
+  PTIMER.iv = setInterval(function() {
+    PTIMER.sec--;
+    _atualizarTimerUI();
+    if (PTIMER.sec <= 0) {
+      pararPickTimer();
+      _autoPickRandom();
+    }
+  }, 1000);
+}
+
+function pararPickTimer() {
+  if (PTIMER.iv) { clearInterval(PTIMER.iv); PTIMER.iv = null; }
+  PTIMER.ativo = false;
+  _atualizarTimerUI();
+}
+
+function _atualizarTimerUI() {
+  var wrap = document.getElementById('pick-timer-wrap');
+  var bar  = document.getElementById('pick-timer-bar');
+  var lbl  = document.getElementById('pick-timer-label');
+  var sec  = document.getElementById('pick-timer-sec');
+  if (!wrap) return;
+  if (!PTIMER.ativo) { wrap.classList.add('dn'); return; }
+  wrap.classList.remove('dn');
+  var pct  = Math.max(0, (PTIMER.sec / PTIMER.max) * 100);
+  bar.style.width = pct + '%';
+  var cls = PTIMER.sec <= 10 ? 'pick-timer-bar danger'
+          : PTIMER.sec <= 20 ? 'pick-timer-bar warn'
+          : 'pick-timer-bar';
+  bar.className = cls;
+  lbl.className = 'pick-timer-label' + (PTIMER.sec <= 10 ? ' danger' : '');
+  sec.textContent = PTIMER.sec + 's';
+}
+
+function _autoPickRandom() {
+  if (!D.isMinhaVez) return;
+  var capUsado = D.salarios[D.meuClubeId] || 0;
+  var capRest  = D.salaryCap - capUsado;
+  var disponiveis = D.choices.filter(function(p) { return p.salaryCost <= capRest; });
+  if (!disponiveis.length) {
+    toast('Tempo esgotado — passando a vez.', 'info');
+    skipPick();
+    return;
+  }
+  var picked = disponiveis[Math.floor(Math.random() * disponiveis.length)];
+  D.selectedPlayer = picked;
+  toast('⏱ Tempo esgotado! Auto-pick: ' + esc(picked.apelido || picked.nomeReal), 'info');
+  confirmarPick();
 }
 
 // ════════════════════════════════════════════════
@@ -1678,6 +1843,196 @@ document.getElementById('home-code').addEventListener('input', function(e) {
   if (v.length > 3) v = v.substring(0,3)+'-'+v.substring(3,6);
   e.target.value = v;
 });
+
+// ════════════════════════════════════════════════
+//  ADMIN PANEL
+// ════════════════════════════════════════════════
+var ADMIN = { pwd: null, tapCount: 0, tapTimer: null };
+
+function adminTap() {
+  ADMIN.tapCount++;
+  if (ADMIN.tapTimer) clearTimeout(ADMIN.tapTimer);
+  ADMIN.tapTimer = setTimeout(function(){ ADMIN.tapCount = 0; }, 2000);
+  if (ADMIN.tapCount >= 5) {
+    ADMIN.tapCount = 0;
+    ir('s-admin');
+    if (ADMIN.pwd) {
+      document.getElementById('admin-login-wrap').classList.add('dn');
+      document.getElementById('admin-dashboard').classList.remove('dn');
+      adminCarregar();
+    }
+  }
+}
+
+function adminLogin() {
+  var pwd = document.getElementById('admin-pwd-input').value;
+  if (!pwd) return;
+  document.getElementById('admin-login-msg').className = 'msg info';
+  document.getElementById('admin-login-msg').textContent = 'Verificando...';
+  document.getElementById('admin-login-msg').style.display = 'block';
+  // Validar via API (adminGetStats com a senha — se retornar ok, senha é válida)
+  get({ action:'adminGetStats', adminPwd: pwd }, function(r) {
+    if (!r.success) {
+      var el = document.getElementById('admin-login-msg');
+      el.className = 'msg erro';
+      el.textContent = r.error || 'Senha incorreta.';
+      el.style.display = 'block';
+      document.getElementById('admin-pwd-input').value = '';
+      return;
+    }
+    ADMIN.pwd = pwd;
+    document.getElementById('admin-login-msg').style.display = 'none';
+    document.getElementById('admin-login-wrap').classList.add('dn');
+    document.getElementById('admin-dashboard').classList.remove('dn');
+    adminRenderStats(r);
+    adminCarregarSalas();
+  });
+}
+
+function adminLogout() {
+  ADMIN.pwd = null;
+  document.getElementById('admin-login-wrap').classList.remove('dn');
+  document.getElementById('admin-dashboard').classList.add('dn');
+  document.getElementById('admin-pwd-input').value = '';
+  ir('s-home');
+}
+
+function adminCarregar() {
+  if (!ADMIN.pwd) return;
+  get({ action:'adminGetStats', adminPwd: ADMIN.pwd }, function(r) {
+    if (!r.success) { adminLogout(); return; }
+    adminRenderStats(r);
+  });
+  adminCarregarSalas();
+}
+
+function adminRenderStats(r) {
+  document.getElementById('ast-total').textContent  = r.totalSalas  || 0;
+  document.getElementById('ast-ativas').textContent = r.ativas       || 0;
+  document.getElementById('ast-draft').textContent  = r.emDraft      || 0;
+  document.getElementById('ast-enc').textContent    = r.encerradas   || 0;
+  document.getElementById('ast-hum').textContent    = r.humanosAtivos || 0;
+  document.getElementById('ast-picks').textContent  = r.totalPicks   || 0;
+}
+
+function adminCarregarSalas() {
+  if (!ADMIN.pwd) return;
+  document.getElementById('admin-rooms-lista').innerHTML = '<div class="admin-empty">Carregando...</div>';
+  get({ action:'adminGetRooms', adminPwd: ADMIN.pwd }, function(r) {
+    if (!r.success) { document.getElementById('admin-rooms-lista').innerHTML = '<div class="admin-empty">'+esc(r.error)+'</div>'; return; }
+    adminRenderSalas(r.rooms || []);
+  });
+}
+
+function adminRenderSalas(rooms) {
+  if (!rooms.length) {
+    document.getElementById('admin-rooms-lista').innerHTML = '<div class="admin-empty">Nenhuma sala encontrada.</div>';
+    return;
+  }
+  var html = '';
+  rooms.forEach(function(sala) {
+    var statusCls = 'status-' + (sala.status || 'lobby');
+    var statusLabel = sala.status === 'draft' ? 'Draft ativo' : sala.status === 'lobby' ? 'Aguardando' : sala.status;
+    var inativoStr = sala.inativoMin < 60 ? sala.inativoMin + ' min' : Math.floor(sala.inativoMin/60) + 'h' + (sala.inativoMin%60) + 'min';
+    var inativoClass = sala.inativoMin > 30 ? 'admin-inativo' : '';
+    var pickProgress = sala.draftRodadas > 0 ? Math.round(sala.draftPickAtual / (sala.draftRodadas * (sala.humanos + sala.bots)) * 100) : 0;
+
+    html += '<div class="admin-room-card">';
+    html += '<div class="admin-room-head">';
+    html += '<div>';
+    html += '<div class="admin-room-id">'+(sala.isPriority ? '★ ' : '')+sala.roomId+'</div>';
+    html += '<div class="admin-room-nome">'+esc(sala.nomeSala)+'</div>';
+    html += '</div>';
+    html += '<span class="admin-badge-status '+statusCls+'">'+statusLabel+'</span>';
+    html += '</div>';
+
+    html += '<div class="admin-room-meta">';
+    html += '<span>👥 '+sala.humanos+' jogador'+(sala.humanos!==1?'es':'')+'</span>';
+    html += '<span>🤖 '+sala.bots+' bots</span>';
+    if (sala.status === 'draft') html += '<span>📋 Pick '+sala.draftPickAtual+'/'+Math.round(sala.draftRodadas*(sala.humanos+sala.bots))+'</span>';
+    html += '<span class="'+inativoClass+'">⏱ Inativo há '+inativoStr+'</span>';
+    html += '<span style="color:var(--muted)">🕐 '+sala.criadoEm+'</span>';
+    html += '</div>';
+
+    if (sala.status === 'encerrada' || sala.status === 'expirada') {
+      html += '<div style="font-size:.72rem;color:var(--muted);font-style:italic">Sala encerrada</div>';
+    } else {
+      html += '<div class="admin-room-actions">';
+      html += '<button class="admin-btn admin-btn-danger" onclick="adminFecharSala(\''+sala.roomId+'\',\''+esc(sala.nomeSala)+'\')">FECHAR SALA</button>';
+      html += '</div>';
+    }
+    html += '</div>';
+  });
+  document.getElementById('admin-rooms-lista').innerHTML = html;
+}
+
+function adminFecharSala(roomId, nome) {
+  if (!confirm('Fechar a sala "'+nome+'" ('+roomId+')? Esta ação é irreversível.')) return;
+  post('adminCloseRoom', { adminPwd: ADMIN.pwd, roomId: roomId }, function(r) {
+    if (!r.success) { alert('Erro: ' + r.error); return; }
+    toast('Sala ' + roomId + ' encerrada.', 'ok');
+    adminCarregar();
+  });
+}
+
+function adminLimparExpiradas() {
+  if (!confirm('Encerrar todas as salas inativas há mais de '+60+' minutos?')) return;
+  post('adminClearExpired', { adminPwd: ADMIN.pwd, minutos: 60 }, function(r) {
+    if (!r.success) { alert('Erro: ' + r.error); return; }
+    toast(r.encerradas + ' sala(s) expirada(s) limpas.', 'ok');
+    adminCarregar();
+  });
+}
+
+// Acesso direto via hash na URL (#admin)
+(function() {
+  if (window.location.hash === '#admin') {
+    setTimeout(function() { ir('s-admin'); }, 200);
+  }
+})();
+
 </script>
-</body>
-</html>
+
+<!-- ══════════════════════════════════════
+     SEÇÃO: ADMIN PANEL
+══════════════════════════════════════ -->
+<section id="s-admin">
+  <div class="admin-topo">
+    <span class="admin-topo-logo">ERA UMA VEZ</span>
+    <span class="admin-topo-tag">Admin</span>
+    <button class="admin-btn admin-btn-sec" onclick="adminLogout()" style="margin:0;padding:5px 12px;font-size:.65rem">SAIR</button>
+  </div>
+
+  <!-- LOGIN -->
+  <div id="admin-login-wrap">
+    <div class="admin-login-wrap">
+      <div class="admin-login-title">ACESSO RESTRITO</div>
+      <p class="admin-login-sub">Área exclusiva do administrador. Digite a senha para continuar.</p>
+      <div class="field">
+        <label>Senha de administrador</label>
+        <input id="admin-pwd-input" type="password" placeholder="••••••••••"
+          autocomplete="off" onkeydown="if(event.key==='Enter')adminLogin()">
+      </div>
+      <div id="admin-login-msg" class="msg"></div>
+      <button class="btn btn-primary" style="margin-top:12px" onclick="adminLogin()">ENTRAR →</button>
+    </div>
+  </div>
+
+  <!-- DASHBOARD (oculto até login) -->
+  <div id="admin-dashboard" class="dn">
+    <div class="admin-body">
+
+      <!-- Stats -->
+      <div class="admin-section-title" style="margin-bottom:12px">VISÃO GERAL</div>
+      <div class="admin-stats-grid" id="admin-stats-grid">
+        <div class="admin-stat"><div class="admin-stat-n" id="ast-total">—</div><div class="admin-stat-l">Salas total</div></div>
+        <div class="admin-stat"><div class="admin-stat-n" id="ast-ativas">—</div><div class="admin-stat-l">No lobby</div></div>
+        <div class="admin-stat"><div class="admin-stat-n" id="ast-draft">—</div><div class="admin-stat-l">Em draft</div></div>
+        <div class="admin-stat"><div class="admin-stat-n" id="ast-enc">—</div><div class="admin-stat-l">Encerradas</div></div>
+        <div class="admin-stat"><div class="admin-stat-n" id="ast-hum">—</div><div class="admin-stat-l">Jogadores</div></div>
+        <div class="admin-stat"><div class="admin-stat-n" id="ast-picks">—</div><div class="admin-stat-l">Picks feitos</div></div>
+      </div>
+
+      <!-- Ações globais -->
+      <div style="display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap">
+        <button class="admin-btn admin-btn-sec" onclick="adminCarregar()">↻ ATUALIZAR</button>
