@@ -447,6 +447,24 @@ section.ativo{display:block}
   font-family:'Bebas Neue',sans-serif;font-size:1.6rem;color:var(--black);
   line-height:1;flex-shrink:0;
 }
+/* ═══════════════════════════════════════════════════════
+   FORMAÇÃO
+═══════════════════════════════════════════════════════ */
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:4px}
+.form-card{
+  border:2px solid var(--divider);border-radius:6px;padding:12px 10px 10px;
+  cursor:pointer;background:var(--card);text-align:center;transition:all .14s;
+}
+.form-card:hover{border-color:var(--red);transform:translateY(-2px);box-shadow:0 4px 12px var(--shadow)}
+.form-card.sel{border-color:var(--red);background:#FFF3EE}
+.form-name{font-family:'Bebas Neue',sans-serif;font-size:1.5rem;color:var(--black);letter-spacing:.06em;line-height:1}
+.form-desc{font-size:.65rem;color:var(--muted);margin-top:3px;letter-spacing:.06em;text-transform:uppercase}
+.form-mini{width:70px;height:100px;margin:8px auto 0;display:block}
+/* slot clicável no campo */
+.campo-slot-btn{cursor:pointer;transition:opacity .12s}
+.campo-slot-btn:hover circle{fill:rgba(255,255,255,.28)!important}
+.campo-slot-ativo circle{fill:var(--red)!important;stroke:var(--red)!important}
+
 </style>
 </head>
 <body>
@@ -703,6 +721,23 @@ section.ativo{display:block}
 <!-- ══════════════════════════════════════
      SEÇÃO: DRAFT
 ══════════════════════════════════════ -->
+<!-- ══════════════════════════════════════
+     SEÇÃO: ESCOLHA DE FORMAÇÃO
+══════════════════════════════════════ -->
+<section id="s-formacao">
+  <div class="topo">
+    <div><div class="topo-logo">ERA UMA VEZ</div><div class="topo-sub">Sua Formação</div></div>
+  </div>
+  <div class="form-wrap" style="max-width:480px">
+    <div class="form-title">ESCOLHA A FORMAÇÃO</div>
+    <p class="form-sub">Selecione como seu time vai se posicionar em campo. Você poderá montar o elenco clicando em cada posição.</p>
+    <div class="form-grid" id="form-grid"><!-- renderizado por JS --></div>
+    <div id="form-msg" class="msg" style="margin-top:12px"></div>
+    <button class="btn btn-primary" style="margin-top:18px" id="btn-confirmar-formacao" onclick="confirmarFormacao()" disabled>CONFIRMAR →</button>
+  </div>
+</section>
+
+
 <section id="s-draft">
   <div class="draft-header">
     <div class="draft-h-left">
@@ -854,6 +889,7 @@ var D = {
   currentClubId:null, isMinhaVez:false, meuClubeId:null,
   picksFeitos:{}, salarios:{}, salaryCap:200, playerMap:{},
   takenNomeReais:[], clubeMap:{}, selectedPlayer:null,
+  posFilter:null, posSlotAtivo:null,
   choices:[], choiceLoading:false, pollDraft:null
 };
 var TEMPO = { ativo:false, segundos:0, timer:null, quem:null };
@@ -876,20 +912,67 @@ var DETAILS = {
   cruz:     '<line x1="50" y1="12" x2="50" y2="90" stroke="__ACC__" stroke-width="6" opacity=".7"/><line x1="12" y1="50" x2="88" y2="50" stroke="__ACC__" stroke-width="6" opacity=".7"/>'
 };
 
-// ─── POSIÇÕES NO CAMPO (layout 4-3-3 base) ────────
-var CAMPO_POS = [
-  {pos:'GOL', x:110, y:290, label:'GOL'},
-  {pos:'LD',  x:175, y:240, label:'LD'},
-  {pos:'ZAG', x:140, y:252, label:'ZAG'},
-  {pos:'ZAG', x:80,  y:252, label:'ZAG'},
-  {pos:'LE',  x:45,  y:240, label:'LE'},
-  {pos:'VOL', x:110, y:195, label:'VOL'},
-  {pos:'MEI', x:155, y:175, label:'MEI'},
-  {pos:'MEI', x:65,  y:175, label:'MEI'},
-  {pos:'CA',  x:165, y:120, label:'CA'},
-  {pos:'CA',  x:110, y:105, label:'CA'},
-  {pos:'CA',  x:55,  y:120, label:'CA'}
-];
+// ─── FORMAÇÕES DISPONÍVEIS ───────────────────────
+var FORMACOES = {
+  '4-3-3': {
+    label:'4-3-3', desc:'Posse e pressão alta',
+    slots:[
+      {pos:'GOL',x:110,y:285,label:'GOL'},
+      {pos:'LAT',x:178,y:248,label:'LD'},{pos:'ZAG',x:145,y:255,label:'ZAG'},{pos:'ZAG',x:75,y:255,label:'ZAG'},{pos:'LAT',x:42,y:248,label:'LE'},
+      {pos:'MEI',x:158,y:188,label:'MEI'},{pos:'VOL',x:110,y:196,label:'VOL'},{pos:'MEI',x:62,y:188,label:'MEI'},
+      {pos:'ATA',x:165,y:118,label:'ATA'},{pos:'ATA',x:110,y:106,label:'ATA'},{pos:'ATA',x:55,y:118,label:'ATA'}
+    ]
+  },
+  '4-4-2': {
+    label:'4-4-2', desc:'Equilíbrio e amplitude',
+    slots:[
+      {pos:'GOL',x:110,y:285,label:'GOL'},
+      {pos:'LAT',x:178,y:248,label:'LD'},{pos:'ZAG',x:145,y:255,label:'ZAG'},{pos:'ZAG',x:75,y:255,label:'ZAG'},{pos:'LAT',x:42,y:248,label:'LE'},
+      {pos:'MEI',x:175,y:185,label:'MEI'},{pos:'MEI',x:132,y:191,label:'MEI'},{pos:'MEI',x:88,y:191,label:'MEI'},{pos:'MEI',x:45,y:185,label:'MEI'},
+      {pos:'ATA',x:140,y:116,label:'ATA'},{pos:'ATA',x:80,y:116,label:'ATA'}
+    ]
+  },
+  '4-2-3-1': {
+    label:'4-2-3-1', desc:'Solidez defensiva + criação',
+    slots:[
+      {pos:'GOL',x:110,y:285,label:'GOL'},
+      {pos:'LAT',x:178,y:248,label:'LD'},{pos:'ZAG',x:145,y:255,label:'ZAG'},{pos:'ZAG',x:75,y:255,label:'ZAG'},{pos:'LAT',x:42,y:248,label:'LE'},
+      {pos:'VOL',x:140,y:210,label:'VOL'},{pos:'VOL',x:80,y:210,label:'VOL'},
+      {pos:'MEI',x:168,y:160,label:'MEI'},{pos:'MEI',x:110,y:153,label:'MEI'},{pos:'MEI',x:52,y:160,label:'MEI'},
+      {pos:'ATA',x:110,y:108,label:'ATA'}
+    ]
+  },
+  '3-5-2': {
+    label:'3-5-2', desc:'Largura e dois centroavantes',
+    slots:[
+      {pos:'GOL',x:110,y:285,label:'GOL'},
+      {pos:'ZAG',x:158,y:250,label:'ZAG'},{pos:'ZAG',x:110,y:255,label:'ZAG'},{pos:'ZAG',x:62,y:250,label:'ZAG'},
+      {pos:'LAT',x:188,y:195,label:'AD'},{pos:'MEI',x:150,y:183,label:'MEI'},{pos:'VOL',x:110,y:193,label:'VOL'},{pos:'MEI',x:70,y:183,label:'MEI'},{pos:'LAT',x:32,y:195,label:'AE'},
+      {pos:'ATA',x:140,y:116,label:'ATA'},{pos:'ATA',x:80,y:116,label:'ATA'}
+    ]
+  },
+  '5-3-2': {
+    label:'5-3-2', desc:'Defesa sólida com alas',
+    slots:[
+      {pos:'GOL',x:110,y:285,label:'GOL'},
+      {pos:'LAT',x:192,y:248,label:'AD'},{pos:'ZAG',x:160,y:255,label:'ZAG'},{pos:'ZAG',x:110,y:258,label:'ZAG'},{pos:'ZAG',x:60,y:255,label:'ZAG'},{pos:'LAT',x:28,y:248,label:'AE'},
+      {pos:'MEI',x:158,y:183,label:'MEI'},{pos:'VOL',x:110,y:193,label:'VOL'},{pos:'MEI',x:62,y:183,label:'MEI'},
+      {pos:'ATA',x:140,y:116,label:'ATA'},{pos:'ATA',x:80,y:116,label:'ATA'}
+    ]
+  },
+  '4-5-1': {
+    label:'4-5-1', desc:'Domínio do meio-campo',
+    slots:[
+      {pos:'GOL',x:110,y:285,label:'GOL'},
+      {pos:'LAT',x:178,y:248,label:'LD'},{pos:'ZAG',x:145,y:255,label:'ZAG'},{pos:'ZAG',x:75,y:255,label:'ZAG'},{pos:'LAT',x:42,y:248,label:'LE'},
+      {pos:'MEI',x:188,y:183,label:'MEI'},{pos:'MEI',x:150,y:190,label:'MEI'},{pos:'VOL',x:110,y:195,label:'VOL'},{pos:'MEI',x:70,y:190,label:'MEI'},{pos:'MEI',x:32,y:183,label:'MEI'},
+      {pos:'ATA',x:110,y:113,label:'ATA'}
+    ]
+  }
+};
+
+// CAMPO_POS dinâmico — atualizado ao escolher formação
+var CAMPO_POS = FORMACOES['4-3-3'].slots;
 
 // ════════════════════════════════════════════════
 //  NAVEGAÇÃO
@@ -1213,12 +1296,9 @@ function carregarClubeMap(callback) {
 //  INICIAR TELA DRAFT
 // ════════════════════════════════════════════════
 function iniciarTelaDraft() {
-  ir('s-draft');
-  D.ativo = true;
-  atualizarCampo();
-  if (D.pollDraft) clearInterval(D.pollDraft);
-  pollDraft();
-  D.pollDraft = setInterval(pollDraft, 4000);
+  formacaoSelecionada = null;
+  renderFormacoes();
+  ir('s-formacao');
 }
 
 function pollDraft() {
@@ -1270,8 +1350,11 @@ function renderDraftState(r) {
   atualizarBoxScore();
   atualizarCampo();
 
-  // Choices
-  if (D.isMinhaVez && !D.choiceLoading) {
+  // Choices — player clica num slot no campo para filtrar por posição
+  if (D.isMinhaVez && !D.choices.length && !D.choiceLoading) {
+    document.getElementById('picks-lista').innerHTML =
+      '<div class="picks-loading" style="text-align:center;padding:20px 10px"><strong style="display:block;font-size:.9rem;color:var(--black);margin-bottom:6px">É a sua vez!</strong><span style="color:var(--muted);font-size:.82rem">Clique em um slot vazio no campo para escolher um jogador para aquela posição.</span></div>';
+  } else if (D.isMinhaVez && D.posFilter && !D.choiceLoading) {
     carregarChoices();
   } else if (!D.isMinhaVez) {
     document.getElementById('picks-lista').innerHTML =
@@ -1286,6 +1369,53 @@ function renderDraftState(r) {
   }
 }
 
+
+// ════════════════════════════════════════════════
+//  ESCOLHA DE FORMAÇÃO
+// ════════════════════════════════════════════════
+var formacaoSelecionada = null;
+
+function renderFormacoes() {
+  var html = '';
+  Object.keys(FORMACOES).forEach(function(key) {
+    var f = FORMACOES[key];
+    var sel = formacaoSelecionada === key;
+    html += '<div class="form-card'+(sel?' sel':'')+'" onclick="selecionarFormacao(''+key+'')">';
+    html += '<div class="form-name">'+key+'</div>';
+    html += '<div class="form-desc">'+f.desc+'</div>';
+    html += '<svg class="form-mini" viewBox="0 0 220 320" xmlns="http://www.w3.org/2000/svg">';
+    html += '<rect width="220" height="320" fill="#1E7A47" rx="4"/>';
+    html += '<rect x="8" y="8" width="204" height="304" fill="none" stroke="rgba(255,255,255,.3)" stroke-width="1.5"/>';
+    html += '<line x1="8" y1="160" x2="212" y2="160" stroke="rgba(255,255,255,.2)" stroke-width="1"/>';
+    html += '<circle cx="110" cy="160" r="35" fill="none" stroke="rgba(255,255,255,.2)" stroke-width="1"/>';
+    f.slots.forEach(function(s) {
+      var fill = s.pos==='GOL' ? 'rgba(255,220,0,.8)' : s.pos==='ZAG'||s.pos==='LAT' ? 'rgba(80,160,255,.8)' : 'rgba(255,255,255,.7)';
+      html += '<circle cx="'+s.x+'" cy="'+s.y+'" r="10" fill="'+fill+'"/>';
+      html += '<text x="'+s.x+'" y="'+(s.y+4)+'" text-anchor="middle" font-size="6" font-weight="700" fill="#000">'+s.label+'</text>';
+    });
+    html += '</svg></div>';
+  });
+  document.getElementById('form-grid').innerHTML = html;
+}
+
+function selecionarFormacao(key) {
+  formacaoSelecionada = key;
+  renderFormacoes();
+  document.getElementById('btn-confirmar-formacao').disabled = false;
+}
+
+function confirmarFormacao() {
+  if (!formacaoSelecionada) return msg('form-msg','erro','Selecione uma formação.');
+  CAMPO_POS = FORMACOES[formacaoSelecionada].slots;
+  S.formacao = formacaoSelecionada;
+  ir('s-draft');
+  D.ativo = true;
+  atualizarCampo();
+  if (D.pollDraft) clearInterval(D.pollDraft);
+  pollDraft();
+  D.pollDraft = setInterval(pollDraft, 4000);
+}
+
 // ════════════════════════════════════════════════
 //  CHOICES
 // ════════════════════════════════════════════════
@@ -1293,7 +1423,9 @@ function carregarChoices() {
   if (D.choiceLoading) return;
   D.choiceLoading = true;
   document.getElementById('picks-lista').innerHTML = '<div class="picks-loading">Sorteando opções...</div>';
-  get({ action:'getDraftChoices', roomId:S.roomId, userId:S.userId, clubId:D.meuClubeId }, function(r) {
+  var reqParams = { action:'getDraftChoices', roomId:S.roomId, userId:S.userId, clubId:D.meuClubeId };
+  if (D.posFilter) reqParams.posFilter = D.posFilter;
+  get(reqParams, function(r) {
     D.choiceLoading = false;
     if (!r.success) { document.getElementById('picks-lista').innerHTML = '<div class="picks-loading">'+esc(r.error)+'</div>'; return; }
     D.choices = r.choices || [];
@@ -1320,7 +1452,8 @@ function renderChoices() {
     html += '<div class="pick-salary">Custo: <strong>'+p.salaryCost+' pts</strong> · Cap restante após pick: '+(capRest-p.salaryCost)+' pts</div>';
     html += '</div>';
   });
-  if (!html) html = '<div class="picks-loading">Nenhuma opção disponível.</div>';
+  if (!html && D.posFilter) html = '<div class="picks-loading">Nenhum '+D.posFilter+' disponível com seu salary cap.</div>';
+  if (!html && !D.posFilter) html = '<div class="picks-loading" style="text-align:center;padding:20px 10px;color:var(--muted)"><strong style="display:block;font-size:.9rem;color:var(--black);margin-bottom:6px">Clique em uma posição no campo →</strong>Toque em um slot vazio para ver os jogadores disponíveis para aquela posição.</div>';
   document.getElementById('picks-lista').innerHTML = html;
   document.getElementById('btn-confirmar-pick').classList.toggle('dn', !D.selectedPlayer);
 }
@@ -1340,7 +1473,7 @@ function confirmarPick() {
   post('makePick', { roomId:S.roomId, userId:S.userId, clubId:D.meuClubeId, playerId:D.selectedPlayer.playerId }, function(r) {
     if (!r.success) { toast(r.error,'erro'); return; }
     toast('Pick confirmado: '+esc(D.selectedPlayer.apelido||D.selectedPlayer.nomeReal), 'ok');
-    D.selectedPlayer = null; D.choiceLoading = false;
+    D.selectedPlayer = null; D.choiceLoading = false; D.posFilter = null; D.posSlotAtivo = null;
     document.getElementById('btn-confirmar-pick').classList.add('dn');
     pollDraft();
   });
@@ -1350,7 +1483,7 @@ function skipPick() {
   post('skipPick', { roomId:S.roomId, userId:S.userId, clubId:D.meuClubeId }, function(r) {
     if (!r.success) { toast(r.error,'erro'); return; }
     toast('Vez passada.', 'info');
-    D.selectedPlayer = null; D.choiceLoading = false;
+    D.selectedPlayer = null; D.choiceLoading = false; D.posFilter = null; D.posSlotAtivo = null;
     pollDraft();
   });
 }
@@ -1392,23 +1525,47 @@ function atualizarCampo() {
   var picks = D.picksFeitos[D.meuClubeId] || [];
   var meu = D.clubeMap[D.meuClubeId];
   if (meu) document.getElementById('field-clube-nome').textContent = meu.nomeClube;
+  var isMinhaVez = D.isMinhaVez;
 
   var html = '';
   CAMPO_POS.forEach(function(slot, i) {
     var p = picks[i];
     var cx = slot.x, cy = slot.y;
     if (p) {
-      // círculo preenchido
+      // slot preenchido — não clicável
+      html += '<g>';
       html += '<circle cx="'+cx+'" cy="'+cy+'" r="16" fill="'+(meu?meu.primaryColor:'#1A1A1A')+'"/>';
       html += '<text x="'+cx+'" y="'+(cy-3)+'" text-anchor="middle" font-size="7" font-weight="700" fill="'+(meu?meu.textColor:'#fff')+'">'+esc(p.apelido||p.nomeReal||'').substring(0,7)+'</text>';
       html += '<text x="'+cx+'" y="'+(cy+8)+'" text-anchor="middle" font-size="6" fill="'+(meu?meu.textColor:'#fff')+'" opacity=".7">'+p.overall+'</text>';
+      html += '</g>';
+    } else if (isMinhaVez) {
+      // slot vazio e é minha vez — clicável
+      var isAtivo = D.posSlotAtivo === i;
+      html += '<g class="campo-slot-btn'+(isAtivo?' campo-slot-ativo':'')+'" onclick="clicarSlot('+i+')">';
+      html += '<circle cx="'+cx+'" cy="'+cy+'" r="14" fill="'+(isAtivo?'rgba(232,93,38,.5)':'rgba(255,255,255,.12)')+'" stroke="'+(isAtivo?'rgba(232,93,38,.9)':'rgba(255,255,255,.4)')+'" stroke-width="'+(isAtivo?2:1)+'"/>';
+      html += '<text x="'+cx+'" y="'+(cy+4)+'" text-anchor="middle" font-size="7" font-weight="700" fill="'+(isAtivo?'#fff':'rgba(255,255,255,.7)')+'">'+slot.label+'</text>';
+      html += '</g>';
     } else {
-      // slot vazio
-      html += '<circle cx="'+cx+'" cy="'+cy+'" r="14" fill="rgba(255,255,255,.12)" stroke="rgba(255,255,255,.4)" stroke-width="1"/>';
-      html += '<text x="'+cx+'" y="'+(cy+4)+'" text-anchor="middle" font-size="7" font-weight="700" fill="rgba(255,255,255,.6)">'+slot.label+'</text>';
+      // slot vazio, não é minha vez
+      html += '<g>';
+      html += '<circle cx="'+cx+'" cy="'+cy+'" r="14" fill="rgba(255,255,255,.08)" stroke="rgba(255,255,255,.25)" stroke-width="1"/>';
+      html += '<text x="'+cx+'" y="'+(cy+4)+'" text-anchor="middle" font-size="7" font-weight="700" fill="rgba(255,255,255,.4)">'+slot.label+'</text>';
+      html += '</g>';
     }
   });
   document.getElementById('campo-posicoes').innerHTML = html;
+}
+
+function clicarSlot(i) {
+  if (!D.isMinhaVez) return;
+  var slot = CAMPO_POS[i];
+  D.posSlotAtivo = i;
+  D.posFilter = slot.pos; // 'GOL','ZAG','LAT','VOL','MEI','ATA'
+  atualizarCampo();
+  // Força recarregar choices com novo filtro de posição
+  D.choiceLoading = false;
+  D.choices = [];
+  carregarChoices();
 }
 
 // ════════════════════════════════════════════════
