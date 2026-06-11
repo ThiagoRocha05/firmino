@@ -1368,6 +1368,10 @@ function carregarClubeMap(callback) {
 //  INICIAR TELA DRAFT
 // ════════════════════════════════════════════════
 function iniciarTelaDraft() {
+  // Evita re-navegar se draft já está ativo ou tela de formação já está aberta
+  if (D.ativo) return;
+  var elForm = document.getElementById('s-formacao');
+  if (elForm && elForm.classList.contains('ativo')) return;
   formacaoSelecionada = null;
   renderFormacoes();
   ir('s-formacao');
@@ -1571,13 +1575,23 @@ function selecionarPick(i) {
 function confirmarPick() {
   if (!D.selectedPlayer) return;
   pararPickTimer();
-  post('makePick', { roomId:S.roomId, userId:S.userId, clubId:D.meuClubeId, playerId:D.selectedPlayer.playerId }, function(r) {
-    if (!r.success) { toast(r.error,'erro'); iniciarPickTimer(); return; } // retoma timer se der erro
-    toast('Pick confirmado: '+esc(D.selectedPlayer.apelido||D.selectedPlayer.nomeReal), 'ok');
+  var payload = { roomId:S.roomId, userId:S.userId, clubId:D.meuClubeId, playerId:D.selectedPlayer.playerId };
+  if (D.posSlotAtivo !== null && D.posSlotAtivo !== undefined) payload.slotIndex = D.posSlotAtivo;
+  post('makePick', payload, function(r) {
+    if (!r.success) { toast(r.error,'erro'); iniciarPickTimer(); return; }
+    toast('Pick: '+esc(D.selectedPlayer.apelido||D.selectedPlayer.nomeReal), 'ok');
+    // Atualização otimista: coloca o jogador no slot imediatamente sem esperar o poll
+    if (D.posSlotAtivo !== null && D.posSlotAtivo !== undefined && D.selectedPlayer) {
+      if (!D.picksFeitos[D.meuClubeId]) D.picksFeitos[D.meuClubeId] = [];
+      D.picksFeitos[D.meuClubeId][D.posSlotAtivo] = D.selectedPlayer;
+      atualizarCampo();
+      atualizarBoxScore();
+    }
     D.selectedPlayer = null; D.choices = []; D.choiceLoading = false; D.posFilter = null; D.posSlotAtivo = null;
-    D._eraMinhavezAntes = false; // força detecção de troca no próximo poll
+    D._eraMinhavezAntes = false;
     document.getElementById('btn-confirmar-pick').classList.add('dn');
-    pollDraft();
+    document.getElementById('picks-lista').innerHTML = '<div class="picks-loading">Aguardando bots...</div>';
+    _iniciarRapidPoll(); // polls rápidos para capturar bot turns sem latência
   });
 }
 
@@ -1588,8 +1602,25 @@ function skipPick() {
     toast('Vez passada.', 'info');
     D.selectedPlayer = null; D.choices = []; D.choiceLoading = false; D.posFilter = null; D.posSlotAtivo = null;
     D._eraMinhavezAntes = false;
-    pollDraft();
+    document.getElementById('picks-lista').innerHTML = '<div class="picks-loading">Aguardando bots...</div>';
+    _iniciarRapidPoll();
   });
+}
+
+// Polls rápidos (1s × 5) para capturar bot turns sem latência visível
+function _iniciarRapidPoll() {
+  if (D.pollDraft) clearInterval(D.pollDraft);
+  var count = 0;
+  function _rp() {
+    pollDraft();
+    count++;
+    if (count < 6) {
+      setTimeout(_rp, 1200);
+    } else {
+      D.pollDraft = setInterval(pollDraft, 6000);
+    }
+  }
+  _rp();
 }
 
 // ════════════════════════════════════════════════
@@ -1603,23 +1634,26 @@ function atualizarBoxScore() {
   document.getElementById('bs-cap-usado').textContent = capUsado+' pts usados';
   document.getElementById('bs-cap-rest').textContent  = capRest+' pts restantes';
 
-  // Lista de picks
+  // Lista de picks — usa slots da formação escolhida + banco
   var picks = D.picksFeitos[D.meuClubeId] || [];
-  var posLista = ['GOL','LD','ZAG','ZAG','LE','VOL','MEI','MEI','MEI','CA','CA','CA','CA','CA','CA','CA','CA','CA'];
-  var html = '';
-  posLista.forEach(function(pos, i) {
-    var p = picks[i];
-    html += '<div class="bs-item">';
-    html += '<span class="bs-pos">'+pos+'</span>';
+  var posLista = CAMPO_POS.map(function(s){ return s.label; });
+  while (posLista.length < 18) posLista.push('BNC');
+  var htmlBs = '';
+  var totalPicks = Math.max(posLista.length, picks.length);
+  for (var bi = 0; bi < totalPicks; bi++) {
+    var p = picks[bi];
+    var posLbl = posLista[bi] || 'BNC';
+    htmlBs += '<div class="bs-item">';
+    htmlBs += '<span class="bs-pos">'+posLbl+'</span>';
     if (p) {
-      html += '<span class="bs-nome">'+esc(p.apelido||p.nomeReal||'')+'</span>';
-      html += '<span class="bs-ovr">'+p.overall+'</span>';
+      htmlBs += '<span class="bs-nome">'+esc(p.apelido||p.nomeReal||'')+'</span>';
+      htmlBs += '<span class="bs-ovr">'+p.overall+'</span>';
     } else {
-      html += '<span class="bs-nome vazio">—</span>';
+      htmlBs += '<span class="bs-nome vazio">—</span>';
     }
-    html += '</div>';
-  });
-  document.getElementById('bs-list').innerHTML = html;
+    htmlBs += '</div>';
+  }
+  document.getElementById('bs-list').innerHTML = htmlBs;
 }
 
 // ════════════════════════════════════════════════
@@ -1636,10 +1670,10 @@ function atualizarCampo() {
     var p = picks[i];
     var cx = slot.x, cy = slot.y;
     if (p) {
-      // slot preenchido — não clicável
-      html += '<g>';
+      // slot preenchido — não clicável, mostra jogador
+      html += '<g title="'+esc(p.apelido||p.nomeReal)+' ('+p.overall+')">';
       html += '<circle cx="'+cx+'" cy="'+cy+'" r="16" fill="'+(meu?meu.primaryColor:'#1A1A1A')+'"/>';
-      html += '<text x="'+cx+'" y="'+(cy-3)+'" text-anchor="middle" font-size="7" font-weight="700" fill="'+(meu?meu.textColor:'#fff')+'">'+esc(p.apelido||p.nomeReal||'').substring(0,7)+'</text>';
+      html += '<text x="'+cx+'" y="'+(cy-3)+'" text-anchor="middle" font-size="7" font-weight="700" fill="'+(meu?meu.textColor:'#fff')+'">'+esc((p.apelido||p.nomeReal||'').substring(0,7))+'</text>';
       html += '<text x="'+cx+'" y="'+(cy+8)+'" text-anchor="middle" font-size="6" fill="'+(meu?meu.textColor:'#fff')+'" opacity=".7">'+p.overall+'</text>';
       html += '</g>';
     } else if (isMinhaVez) {
