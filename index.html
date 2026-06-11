@@ -1307,6 +1307,1531 @@ function renderChoices() {
   var html = '';
   D.choices.forEach(function(p, i) {
     var pode = p.salaryCost <= capRest;
+    var ovrCls = p.overall>=90?'ovr-alto':p.overall>=80?'ovr-med':'';
+    var posCls = 'pos-'+(p.grupoPosicao||'MEI');
+    var sel = D.selectedPlayer && D.selectedPlayer.playerId===p.playerId;
+    html += '<div class="pick-card'+(sel?' selected':'')+(pode?'':' disabled-pick')+'" onclick="selecionarPick('+i+')">';
+    html += '<div class="pick-card-top">';
+    html += '<div class="pick-ovr '+ovrCls+'">'+p.overall+'</div>';
+    html += '<div class="pick-info"><div class="pick-nome">'+esc(p.apelido||p.nomeReal)+'</div>';
+    html += '<div class="pick-nome-real">'+esc(p.nomeReal)+'</div></div>';
+    html += '<span class="pick-pos-pill '+posCls+'">'+(p.grupoPosicao||'')+'</span>';
+    html += '</div>';
+    html += '<div class="pick-salary">Custo: <strong>'+p.salaryCost+' pts</strong> · Cap restante após pick: '+(capRest-p.salaryCost)+' pts</div>';
+    html += '</div>';
+  });
+  if (!html) html = '<div class="picks-loading">Nenhuma opção disponível.</div>';
+  document.getElementById('picks-lista').innerHTML = html;
+  document.getElementById('btn-confirmar-pick').classList.toggle('dn', !D.selectedPlayer);
+}
+
+function selecionarPick(i) {
+  var capUsado = D.salarios[D.meuClubeId] || 0;
+  var capRest  = D.salaryCap - capUsado;
+  var p = D.choices[i];
+  if (!p || p.salaryCost > capRest) { toast('Cap insuficiente.', 'erro'); return; }
+  D.selectedPlayer = p;
+  renderChoices();
+  document.getElementById('btn-confirmar-pick').classList.remove('dn');
+}
+
+function confirmarPick() {
+  if (!D.selectedPlayer) return;
+  post('makePick', { roomId:S.roomId, userId:S.userId, clubId:D.meuClubeId, playerId:D.selectedPlayer.playerId }, function(r) {
+    if (!r.success) { toast(r.error,'erro'); return; }
+    toast('Pick confirmado: '+esc(D.selectedPlayer.apelido||D.selectedPlayer.nomeReal), 'ok');
+    D.selectedPlayer = null; D.choiceLoading = false;
+    document.getElementById('btn-confirmar-pick').classList.add('dn');
+    pollDraft();
+  });
+}
+
+function skipPick() {
+  post('skipPick', { roomId:S.roomId, userId:S.userId, clubId:D.meuClubeId }, function(r) {
+    if (!r.success) { toast(r.error,'erro'); return; }
+    toast('Vez passada.', 'info');
+    D.selectedPlayer = null; D.choiceLoading = false;
+    pollDraft();
+  });
+}
+
+// ════════════════════════════════════════════════
+//  BOX SCORE
+// ════════════════════════════════════════════════
+function atualizarBoxScore() {
+  var capUsado = D.salarios[D.meuClubeId] || 0;
+  var capRest  = D.salaryCap - capUsado;
+  var pct = Math.min(100, (capUsado/D.salaryCap)*100);
+  document.getElementById('bs-cap-fill').style.width = pct+'%';
+  document.getElementById('bs-cap-usado').textContent = capUsado+' pts usados';
+  document.getElementById('bs-cap-rest').textContent  = capRest+' pts restantes';
+
+  // Lista de picks
+  var picks = D.picksFeitos[D.meuClubeId] || [];
+  var posLista = ['GOL','LD','ZAG','ZAG','LE','VOL','MEI','MEI','MEI','CA','CA','CA','CA','CA','CA','CA','CA','CA'];
+  var html = '';
+  posLista.forEach(function(pos, i) {
+    var p = picks[i];
+    html += '<div class="bs-item">';
+    html += '<span class="bs-pos">'+pos+'</span>';
+    if (p) {
+      html += '<span class="bs-nome">'+esc(p.apelido||p.nomeReal||'')+'</span>';
+      html += '<span class="bs-ovr">'+p.overall+'</span>';
+    } else {
+      html += '<span class="bs-nome vazio">—</span>';
+    }
+    html += '</div>';
+  });
+  document.getElementById('bs-list').innerHTML = html;
+}
+
+// ════════════════════════════════════════════════
+//  CAMPO
+// ════════════════════════════════════════════════
+function atualizarCampo() {
+  var picks = D.picksFeitos[D.meuClubeId] || [];
+  var meu = D.clubeMap[D.meuClubeId];
+  if (meu) document.getElementById('field-clube-nome').textContent = meu.nomeClube;
+
+  var html = '';
+  CAMPO_POS.forEach(function(slot, i) {
+    var p = picks[i];
+    var cx = slot.x, cy = slot.y;
+    if (p) {
+      // círculo preenchido
+      html += '<circle cx="'+cx+'" cy="'+cy+'" r="16" fill="'+(meu?meu.primaryColor:'#1A1A1A')+'"/>';
+      html += '<text x="'+cx+'" y="'+(cy-3)+'" text-anchor="middle" font-size="7" font-weight="700" fill="'+(meu?meu.textColor:'#fff')+'">'+esc(p.apelido||p.nomeReal||'').substring(0,7)+'</text>';
+      html += '<text x="'+cx+'" y="'+(cy+8)+'" text-anchor="middle" font-size="6" fill="'+(meu?meu.textColor:'#fff')+'" opacity=".7">'+p.overall+'</text>';
+    } else {
+      // slot vazio
+      html += '<circle cx="'+cx+'" cy="'+cy+'" r="14" fill="rgba(255,255,255,.12)" stroke="rgba(255,255,255,.4)" stroke-width="1"/>';
+      html += '<text x="'+cx+'" y="'+(cy+4)+'" text-anchor="middle" font-size="7" font-weight="700" fill="rgba(255,255,255,.6)">'+slot.label+'</text>';
+    }
+  });
+  document.getElementById('campo-posicoes').innerHTML = html;
+}
+
+// ════════════════════════════════════════════════
+//  TEMPO
+// ════════════════════════════════════════════════
+function handleTempoBanner(tempo, ctx) {
+  var bannerId = 'tempo-banner-' + (ctx||'lobby');
+  var textoId  = 'tb-'+(ctx||'lobby')+'-texto';
+  var segId    = 'tb-'+(ctx||'lobby')+'-seg';
+  var banner   = document.getElementById(bannerId);
+  if (!banner) return;
+  if (!tempo) { banner.classList.remove('ativo'); return; }
+  banner.classList.add('ativo');
+  document.getElementById(textoId).textContent = '⏱ Tempo: '+tempo.por;
+  document.getElementById(segId).textContent   = tempo.segundosRestantes+'s';
+}
+
+function solicitarTempo() {
+  post('requestTempo', { roomId:S.roomId, userId:S.userId }, function(r) {
+    if (!r.success) toast(r.error,'erro');
+    else toast('Tempo solicitado!', 'info');
+  });
+}
+
+// ════════════════════════════════════════════════
+//  CONCLUÍDO
+// ════════════════════════════════════════════════
+function carregarConcluido() {
+  get({ action:'getDraftState', roomId:S.roomId, userId:S.userId }, function(r) {
+    if (!r.success) return;
+    D.picksFeitos = r.picksFeitos || {};
+    D.clubeMap = {};
+    (r.clubes||[]).forEach(function(c){ D.clubeMap[c.clubId]=c; D.clubeMap[c.userId]=c; });
+    D.meuClubeId = r.meuClubeId || D.meuClubeId;
+    D.salaryCap = r.salaryCap || 200;
+    D.salarios  = r.salarios  || {};
+
+    var meu = D.clubeMap[D.meuClubeId];
+    if (meu) {
+      document.getElementById('conc-meu-elenco').classList.remove('dn');
+      document.getElementById('conc-nome-clube').textContent = meu.nomeClube;
+      var capUsado = D.salarios[D.meuClubeId] || 0;
+      document.getElementById('conc-cap-usado').textContent = capUsado+'/'+D.salaryCap+' pts';
+      // SVG escudo
+      document.getElementById('conc-escudo').innerHTML = svgEscudo(meu);
+      // Elenco
+      var picks = D.picksFeitos[D.meuClubeId] || [];
+      var rows = '';
+      picks.forEach(function(p) {
+        rows += '<div class="elenco-row">';
+        rows += '<div class="er-pos">'+esc(p.grupoPosicao||'')+'</div>';
+        rows += '<div><div class="er-nome">'+esc(p.apelido||p.nomeReal||'')+'</div>';
+        rows += '<div class="er-real">'+esc(p.nomeReal||'')+'</div></div>';
+        rows += '<div class="er-ovr">'+p.overall+'</div>';
+        rows += '<div class="er-custo">'+p.salaryCost+'pts</div>';
+        rows += '</div>';
+      });
+      document.getElementById('conc-rows').innerHTML = rows;
+    }
+
+    // Outros
+    var outros = '';
+    (r.clubes||[]).forEach(function(c) {
+      if (c.clubId === D.meuClubeId) return;
+      var picks = D.picksFeitos[c.clubId] || [];
+      var capUsado = D.salarios[c.clubId] || 0;
+      var ovrMedio = picks.length ? Math.round(picks.reduce(function(s,p){ return s+(p.overall||0); },0)/picks.length) : 0;
+      outros += '<div class="outro-item">';
+      outros += '<svg width="36" height="36" viewBox="0 0 100 100" class="outro-escudo">'+svgEscudo(c)+'</svg>';
+      outros += '<div class="outro-info"><div class="outro-nome">'+esc(c.nomeClube)+'</div>';
+      outros += '<div class="outro-cap">'+capUsado+'/'+D.salaryCap+' pts · '+picks.length+' picks</div></div>';
+      if (ovrMedio) outros += '<div class="outro-ovr">'+ovrMedio+'</div>';
+      outros += '</div>';
+    });
+    document.getElementById('conc-outros').innerHTML = outros;
+    document.getElementById('conc-sub').textContent = (D.picksFeitos[D.meuClubeId]||[]).length+' jogadores selecionados';
+  });
+}
+
+// ════════════════════════════════════════════════
+//  ESCUDO SVG
+// ════════════════════════════════════════════════
+function svgEscudo(c) {
+  if (!c) return '<circle cx="50" cy="50" r="40" fill="#9e9e9e"/>';
+  var shape  = SHAPES[c.shapeId||'classico']  || SHAPES.classico;
+  var detail = (DETAILS[c.detailId||'simples']||'').replace(/__ACC__/g, c.accentColor||'#fff');
+  var inic   = (c.iniciais||c.nomeClube||'??').substring(0,3).toUpperCase();
+  return '<path d="'+shape+'" fill="'+(c.primaryColor||'#333')+'"/>'+detail+
+    '<text x="50" y="60" text-anchor="middle" font-family="\'Bebas Neue\',sans-serif" font-size="20" fill="'+(c.textColor||'#fff')+'">'+esc(inic)+'</text>';
+}
+
+// ════════════════════════════════════════════════
+//  UTILS
+// ════════════════════════════════════════════════
+function v(id){ var el=document.getElementById(id); return el ? el.value : ''; }
+function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+// Enter em inputs
+document.addEventListener('keydown', function(e) {
+  if (e.key !== 'Enter') return;
+  var aid = document.querySelector('section.ativo')?.id;
+  if (aid==='s-criar')   criarSala();
+  else if (aid==='s-entrar')  entrarSala();
+  else if (aid==='s-codigo')  buscarPorCodigo();
+});
+
+// Formatar campo de código
+document.getElementById('home-code').addEventListener('input', function(e) {
+  var v = e.target.value.replace(/[^A-Z0-9a-z]/gi,'').toUpperCase();
+  if (v.length > 3) v = v.substring(0,3)+'-'+v.substring(3,6);
+  e.target.value = v;
+});
+</script>
+</body>
+</html><!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="theme-color" content="#F0F4F8">
+<title>Era Uma Vez na Firmino...</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+/* ═══════════════════════════════════════════════════════
+   DESIGN SYSTEM — EDITORIAL MAGAZINE
+═══════════════════════════════════════════════════════ */
+:root {
+  --cream:   #F0F4F8;
+  --cream2:  #E8EDF3;
+  --cream3:  #DDE4ED;
+  --black:   #0D1B2A;
+  --brown:   #0A2463;
+  --red:     #E85D26;
+  --red-d:   #C94C1A;
+  --gold:    #F5A623;
+  --green:   #1E7A47;
+  --muted:   #607080;
+  --divider: #D1DCE8;
+  --card:    #FFFFFF;
+  --card2:   #F4F7FA;
+  --white:   #FFFFFF;
+  --shadow:  rgba(13,27,42,.10);
+  --r:       4px;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html{height:100%;-webkit-text-size-adjust:100%}
+body{min-height:100vh;background:var(--cream);color:var(--black);font-family:'Inter',sans-serif;font-size:15px;overflow-x:hidden}
+.dn{display:none!important}
+.db{display:block!important}
+.df{display:flex!important}
+
+/* ─── TIPOGRAFIA ─────────────────────────────────────── */
+.bebas{font-family:'Bebas Neue',sans-serif;letter-spacing:.03em}
+.label{font-size:.65rem;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--muted)}
+.mono{font-family:'Courier New',monospace}
+
+/* ─── TOPO ───────────────────────────────────────────── */
+.topo{
+  background:var(--black);color:var(--cream);
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 18px;height:44px;position:sticky;top:0;z-index:100;
+}
+.topo-logo{font-family:'Bebas Neue',sans-serif;letter-spacing:.1em;font-size:1.1rem;color:var(--cream)}
+.topo-sub{font-size:.62rem;letter-spacing:.12em;text-transform:uppercase;color:rgba(240,244,248,.55);margin-top:1px}
+.topo-right{text-align:right}
+
+/* ─── SEÇÕES ─────────────────────────────────────────── */
+section{display:none}
+section.ativo{display:block}
+
+/* ─── BOTÕES ─────────────────────────────────────────── */
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  border:none;border-radius:var(--r);cursor:pointer;font-family:'Inter',sans-serif;
+  font-weight:600;font-size:.88rem;letter-spacing:.04em;padding:13px 22px;
+  transition:all .14s;min-height:48px;width:100%;
+}
+.btn-primary{background:var(--red);color:#fff}
+.btn-primary:hover{background:var(--red-d)}
+.btn-primary:active{transform:scale(.97)}
+.btn-secondary{background:transparent;color:var(--black);border:2px solid var(--black)}
+.btn-secondary:hover{background:var(--black);color:var(--cream)}
+.btn-ghost{background:transparent;color:var(--muted);border:1.5px solid var(--divider)}
+.btn-ghost:hover{border-color:var(--black);color:var(--black)}
+.btn-sm{padding:8px 16px;min-height:36px;font-size:.78rem}
+.btn-icon{width:auto;padding:10px 14px}
+.btn[disabled]{opacity:.45;pointer-events:none}
+
+/* ─── INPUTS ─────────────────────────────────────────── */
+.field{margin-bottom:14px}
+.field label{display:block;font-size:.65rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:5px}
+.field input,.field select{
+  width:100%;padding:12px 14px;border:1.5px solid var(--divider);
+  border-radius:var(--r);background:var(--white);color:var(--black);
+  font-size:.92rem;font-family:'Inter',sans-serif;
+  transition:border-color .14s;outline:none;
+}
+.field input:focus,.field select:focus{border-color:var(--black)}
+.field input::placeholder{color:var(--muted);opacity:.7}
+
+/* ─── CARDS DE CONTEÚDO ──────────────────────────────── */
+.card{background:var(--card);border:1px solid var(--divider);border-radius:var(--r);padding:18px}
+.card-sm{padding:12px 14px}
+.card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+
+/* ─── MENSAGENS ──────────────────────────────────────── */
+.msg{
+  font-size:.82rem;font-weight:500;padding:10px 14px;
+  border-radius:var(--r);margin-top:8px;display:none;
+}
+.msg.ok{background:#E8F5E9;color:#1B5E20;display:block}
+.msg.erro{background:#FFEBEE;color:#B71C1C;display:block}
+.msg.info{background:#FFF8E1;color:#5D4037;display:block}
+
+/* ─── DIVIDER ────────────────────────────────────────── */
+.divider{height:1px;background:var(--divider);margin:18px 0}
+
+/* ─── BADGE ──────────────────────────────────────────── */
+.badge{
+  display:inline-flex;align-items:center;padding:3px 10px;border-radius:20px;
+  font-size:.65rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
+}
+.badge-red{background:#FFEBEE;color:var(--red)}
+.badge-green{background:#E8F5E9;color:var(--green)}
+.badge-gold{background:#FFF8E1;color:var(--gold)}
+.badge-dark{background:var(--black);color:var(--cream)}
+
+/* ═══════════════════════════════════════════════════════
+   HOME
+═══════════════════════════════════════════════════════ */
+.home-hero{
+  padding:32px 20px 0;
+  position:relative;overflow:hidden;
+  border-bottom:1px solid var(--divider);
+}
+.home-eyebrow{
+  display:flex;align-items:center;gap:10px;margin-bottom:20px;
+}
+.home-eyebrow-line{flex:1;height:1px;background:var(--divider)}
+.home-title-block{margin-bottom:28px}
+.home-t1{
+  font-family:'Bebas Neue',sans-serif;font-size:clamp(3.8rem,16vw,6rem);
+  line-height:.88;color:var(--black);letter-spacing:.01em;
+  display:block;
+}
+.home-t2{
+  font-family:'Bebas Neue',sans-serif;font-size:clamp(2.4rem,9.5vw,3.5rem);
+  line-height:.9;color:var(--red);letter-spacing:.02em;display:block;
+}
+.home-tagline{
+  font-size:.85rem;color:var(--muted);line-height:1.6;
+  max-width:340px;margin-top:10px;
+}
+.home-field{
+  display:block;width:100%;max-width:320px;
+  margin:0 auto 0;
+}
+.home-ctas{padding:20px 20px 24px}
+.home-ctas .btn{margin-bottom:10px}
+.home-return-strip{
+  background:var(--cream2);border-top:1px solid var(--divider);
+  padding:14px 20px;display:flex;align-items:center;gap:10px;
+}
+.home-return-strip .label{white-space:nowrap;flex-shrink:0;margin:0}
+.home-return-strip input{
+  flex:1;padding:10px 12px;border:1.5px solid var(--divider);
+  border-radius:var(--r);background:var(--white);font-size:.92rem;
+  font-family:'Courier New',monospace;text-transform:uppercase;letter-spacing:.12em;
+  outline:none;color:var(--black);
+}
+.home-return-strip input:focus{border-color:var(--black)}
+.home-return-strip .btn{width:auto;flex-shrink:0}
+.home-steps{
+  background:var(--black);padding:24px 20px;
+  display:grid;grid-template-columns:repeat(3,1fr);gap:2px;
+}
+.step-item{padding:14px 10px}
+.step-n{
+  font-family:'Bebas Neue',sans-serif;font-size:2.2rem;
+  color:var(--red);line-height:1;margin-bottom:4px;
+}
+.step-t{font-size:.62rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--cream);margin-bottom:4px}
+.step-d{font-size:.72rem;color:rgba(240,244,248,.55);line-height:1.4}
+
+/* ═══════════════════════════════════════════════════════
+   FORMULÁRIOS (criar / entrar / solo / código)
+═══════════════════════════════════════════════════════ */
+.form-wrap{max-width:440px;margin:0 auto;padding:24px 20px 40px}
+.form-title{
+  font-family:'Bebas Neue',sans-serif;font-size:2.4rem;color:var(--black);
+  letter-spacing:.02em;margin-bottom:4px;
+}
+.form-sub{font-size:.82rem;color:var(--muted);margin-bottom:24px;line-height:1.5}
+.back-btn{
+  display:inline-flex;align-items:center;gap:6px;padding:8px 0;margin-bottom:20px;
+  font-size:.78rem;font-weight:600;color:var(--muted);cursor:pointer;
+  letter-spacing:.06em;text-transform:uppercase;border:none;background:none;
+}
+.back-btn:hover{color:var(--black)}
+.back-btn::before{content:'←';font-size:1rem}
+
+/* ─── CÓDIGO PESSOAL (revelação pós-entrada) ─────────── */
+.pcode-reveal{
+  background:var(--black);color:var(--cream);
+  border-radius:var(--r);padding:18px;margin-top:20px;margin-bottom:8px;
+}
+.pcode-label{font-size:.6rem;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:rgba(240,244,248,.6);margin-bottom:8px}
+.pcode-value{
+  font-family:'Courier New',monospace;font-size:2rem;font-weight:700;
+  letter-spacing:.25em;color:var(--white);
+}
+.pcode-hint{font-size:.72rem;color:rgba(240,244,248,.6);margin-top:6px;line-height:1.5}
+
+/* ═══════════════════════════════════════════════════════
+   LOBBY
+═══════════════════════════════════════════════════════ */
+.lobby-header{
+  background:var(--black);color:var(--cream);padding:20px 20px 18px;
+}
+.lobby-sala{font-family:'Bebas Neue',sans-serif;font-size:2rem;letter-spacing:.04em;line-height:1}
+.lobby-meta{display:flex;gap:10px;margin-top:8px;flex-wrap:wrap}
+.lobby-code-pill{
+  display:inline-flex;align-items:center;gap:6px;
+  background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);
+  border-radius:20px;padding:4px 12px;font-size:.72rem;font-weight:600;letter-spacing:.08em;
+}
+.lobby-body{padding:18px 20px;max-width:540px;margin:0 auto}
+.participant-list{display:flex;flex-direction:column;gap:8px;margin-bottom:20px}
+.p-item{
+  display:flex;align-items:center;gap:12px;
+  background:var(--card);border:1px solid var(--divider);border-radius:var(--r);padding:12px 14px;
+}
+.p-escudo{width:36px;height:36px;flex-shrink:0}
+.p-info{flex:1;min-width:0}
+.p-nick{font-size:.88rem;font-weight:600;line-height:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.p-clube{font-size:.72rem;color:var(--muted);margin-top:2px}
+.p-badge{margin-left:auto;flex-shrink:0}
+.p-kick{
+  width:28px;height:28px;background:none;border:1px solid var(--divider);
+  border-radius:var(--r);cursor:pointer;color:var(--muted);font-size:.8rem;
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;
+}
+.p-kick:hover{background:#FFEBEE;border-color:var(--red);color:var(--red)}
+.lobby-actions{display:flex;flex-direction:column;gap:10px}
+
+/* ─── IDENTIDADE DO CLUBE ────────────────────────────── */
+.ident-wrap{max-width:440px;margin:0 auto;padding:20px 20px 40px}
+.escudo-preview{
+  width:80px;height:80px;margin:0 auto 20px;display:block;
+}
+.color-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:14px}
+.color-field label{display:block;font-size:.6rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:5px}
+.color-field input[type="color"]{width:100%;height:44px;border:1.5px solid var(--divider);border-radius:var(--r);cursor:pointer;padding:2px}
+.shape-row,.detail-row{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px}
+.shape-btn,.detail-btn{
+  padding:6px 12px;border:1.5px solid var(--divider);border-radius:var(--r);
+  font-size:.72rem;font-weight:600;cursor:pointer;background:var(--white);
+  transition:all .12s;
+}
+.shape-btn.sel,.detail-btn.sel{background:var(--black);color:var(--cream);border-color:var(--black)}
+
+/* ═══════════════════════════════════════════════════════
+   DRAFT — CAMPO EDITORIAL
+═══════════════════════════════════════════════════════ */
+#s-draft{background:var(--cream);min-height:100vh}
+.draft-header{
+  background:var(--black);padding:0 16px;height:48px;
+  display:flex;align-items:center;justify-content:space-between;
+  position:sticky;top:0;z-index:50;
+}
+.draft-h-left{display:flex;align-items:center;gap:14px}
+.draft-h-rodada{
+  font-family:'Bebas Neue',sans-serif;font-size:1.6rem;color:var(--cream);
+  line-height:1;letter-spacing:.04em;
+}
+.draft-h-rodada span{color:rgba(240,244,248,.45);font-size:1.1rem}
+.draft-h-cap{
+  display:flex;align-items:center;gap:6px;
+  font-size:.7rem;font-weight:600;color:rgba(240,244,248,.7);letter-spacing:.06em;
+}
+.draft-h-cap-val{color:var(--cream);font-weight:700;font-size:.82rem}
+.draft-h-right{display:flex;align-items:center;gap:10px}
+.draft-vez-badge{
+  background:var(--red);color:#fff;padding:4px 10px;
+  border-radius:20px;font-size:.62rem;font-weight:700;letter-spacing:.1em;
+  text-transform:uppercase;animation:pulseBadge 1.4s ease-in-out infinite;
+}
+@keyframes pulseBadge{0%,100%{opacity:1}50%{opacity:.65}}
+.draft-vez-badge.bot-vez{background:var(--muted);animation:none}
+
+/* ─── LAYOUT DRAFT ───────────────────────────────────── */
+.draft-body{
+  display:grid;
+  grid-template-columns:1fr;
+  max-width:680px;margin:0 auto;
+  padding:14px 14px 100px;
+  gap:14px;
+}
+@media(min-width:580px){
+  .draft-body{grid-template-columns:240px 1fr}
+}
+
+/* ─── PICKS ──────────────────────────────────────────── */
+.draft-picks-col{}
+.picks-title{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:10px;
+}
+.picks-title .label{margin:0}
+.pick-card{
+  background:var(--card);border:1.5px solid var(--divider);border-radius:var(--r);
+  padding:12px 14px;margin-bottom:8px;cursor:pointer;transition:all .14s;
+  position:relative;
+}
+.pick-card.selected{
+  border-color:var(--red);background:#FFF5F4;
+  box-shadow:0 2px 8px rgba(204,43,26,.18);
+}
+.pick-card.disabled-pick{opacity:.4;pointer-events:none}
+.pick-card-top{display:flex;align-items:center;gap:10px}
+.pick-ovr{
+  font-family:'Bebas Neue',sans-serif;font-size:2rem;line-height:1;
+  color:var(--black);width:40px;flex-shrink:0;text-align:center;
+}
+.pick-ovr.ovr-alto{color:var(--red)}
+.pick-ovr.ovr-med{color:var(--gold)}
+.pick-info{flex:1;min-width:0}
+.pick-nome{font-size:.88rem;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pick-nome-real{font-size:.7rem;color:var(--muted);margin-top:1px}
+.pick-pos-pill{
+  font-size:.6rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
+  padding:3px 7px;border-radius:20px;flex-shrink:0;
+}
+.pos-GOL{background:#E3F2FD;color:#0D47A1}
+.pos-ZAG{background:#E8F5E9;color:#1B5E20}
+.pos-LAT{background:#F3E5F5;color:#4A148C}
+.pos-VOL{background:#FFF3E0;color:#E65100}
+.pos-MEI{background:#FFF8E1;color:#827717}
+.pos-ATA{background:#FFEBEE;color:#B71C1C}
+.pick-salary{font-size:.68rem;color:var(--muted);margin-top:5px}
+.pick-salary strong{color:var(--black)}
+.pick-card.selected::after{
+  content:'✔';position:absolute;top:10px;right:12px;
+  font-size:.8rem;color:var(--red);font-weight:700;
+}
+.picks-loading{text-align:center;padding:20px 0;color:var(--muted);font-size:.82rem}
+.btn-confirmar-pick{margin-top:10px}
+
+/* ─── CAMPO ──────────────────────────────────────────── */
+.draft-field-col{}
+.field-title{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:10px;
+}
+.field-title .label{margin:0}
+.campo-svg-wrap{
+  background:var(--card);border:1px solid var(--divider);border-radius:var(--r);
+  padding:4px;overflow:hidden;
+}
+/* ─── BOX SCORE ──────────────────────────────────────── */
+.boxscore{
+  background:var(--card);border:1px solid var(--divider);border-radius:var(--r);
+  padding:14px;margin-top:14px;
+}
+.boxscore-title{
+  font-family:'Bebas Neue',sans-serif;font-size:1.4rem;letter-spacing:.06em;
+  color:var(--black);margin-bottom:10px;
+}
+.bs-cap-bar{height:6px;background:var(--cream3);border-radius:3px;margin-bottom:4px;overflow:hidden}
+.bs-cap-fill{height:100%;background:var(--red);border-radius:3px;transition:width .4s}
+.bs-cap-label{display:flex;justify-content:space-between;font-size:.68rem;color:var(--muted);margin-bottom:12px}
+.bs-list{display:grid;grid-template-columns:1fr 1fr;gap:4px}
+.bs-item{
+  display:flex;align-items:center;gap:6px;padding:5px 8px;
+  background:var(--cream2);border-radius:2px;
+}
+.bs-pos{font-size:.6rem;font-weight:700;letter-spacing:.1em;color:var(--muted);width:28px;flex-shrink:0}
+.bs-nome{font-size:.72rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1}
+.bs-nome.vazio{color:var(--muted);font-style:italic;font-weight:400}
+.bs-ovr{font-size:.7rem;font-weight:700;color:var(--black);flex-shrink:0}
+
+/* ─── TEMPO ──────────────────────────────────────────── */
+.tempo-banner{
+  background:#FFF8E1;border-bottom:2px solid var(--gold);
+  padding:8px 16px;display:flex;align-items:center;justify-content:space-between;
+  font-size:.8rem;display:none;
+}
+.tempo-banner.ativo{display:flex}
+.tempo-seg{font-family:'Bebas Neue',sans-serif;font-size:1.4rem;color:var(--gold)}
+
+/* ─── TOAST ──────────────────────────────────────────── */
+.toast-wrap{
+  position:fixed;bottom:24px;left:50%;transform:translateX(-50%);
+  z-index:9999;pointer-events:none;
+  display:flex;flex-direction:column;align-items:center;gap:8px;
+}
+.toast-item{
+  background:var(--black);color:var(--cream);padding:10px 20px;
+  border-radius:30px;font-size:.82rem;font-weight:500;
+  animation:toastIn .2s ease;box-shadow:0 4px 16px rgba(0,0,0,.3);
+  pointer-events:all;max-width:320px;text-align:center;
+}
+.toast-item.ok{background:var(--green)}
+.toast-item.erro{background:var(--red)}
+.toast-item.info{background:var(--gold);color:var(--black)}
+@keyframes toastIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+
+/* ─── SAVE CODE MODAL ────────────────────────────────── */
+.modal-overlay{
+  position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:500;
+  display:none;align-items:center;justify-content:center;padding:20px;
+}
+.modal-overlay.ativo{display:flex}
+.modal-box{
+  background:var(--cream);border-radius:4px;padding:28px 24px;width:100%;max-width:360px;
+  box-shadow:0 8px 40px rgba(0,0,0,.35);
+}
+.modal-title{font-family:'Bebas Neue',sans-serif;font-size:1.8rem;letter-spacing:.04em;margin-bottom:6px}
+.modal-sub{font-size:.82rem;color:var(--muted);margin-bottom:20px;line-height:1.5}
+.modal-btns{display:flex;flex-direction:column;gap:8px;margin-top:16px}
+
+/* ─── CONCLUÍDO ──────────────────────────────────────── */
+.concluido-header{
+  background:var(--black);color:var(--cream);padding:28px 20px 24px;text-align:center;
+}
+.concluido-t{font-family:'Bebas Neue',sans-serif;font-size:3rem;letter-spacing:.04em;line-height:1}
+.concluido-sub{font-size:.82rem;color:rgba(237,231,211,.55);margin-top:6px}
+.concluido-body{max-width:540px;margin:0 auto;padding:18px 18px 60px}
+.elenco-card{
+  background:var(--card);border:1px solid var(--divider);border-radius:var(--r);
+  overflow:hidden;margin-bottom:14px;
+}
+.elenco-head{
+  background:var(--black);color:var(--cream);
+  padding:10px 14px;display:flex;align-items:center;gap:10px;
+}
+.elenco-head .bebas{font-size:1.2rem;letter-spacing:.06em}
+.elenco-rows{}
+.elenco-row{
+  display:flex;align-items:center;padding:9px 14px;border-bottom:1px solid var(--cream2);
+  gap:10px;
+}
+.elenco-row:last-child{border-bottom:none}
+.er-pos{font-size:.62rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;width:30px;color:var(--muted);flex-shrink:0}
+.er-nome{font-size:.85rem;font-weight:600;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.er-real{font-size:.7rem;color:var(--muted);margin-top:1px}
+.er-ovr{font-family:'Bebas Neue',sans-serif;font-size:1.3rem;color:var(--black);flex-shrink:0}
+.er-custo{font-size:.68rem;color:var(--muted);flex-shrink:0}
+
+/* ─── OUTROS ELENCOS ─────────────────────────────────── */
+.outros-list{display:flex;flex-direction:column;gap:8px}
+.outro-item{
+  background:var(--card);border:1px solid var(--divider);border-radius:var(--r);
+  padding:12px 14px;display:flex;align-items:center;gap:12px;
+}
+.outro-escudo{width:36px;height:36px;flex-shrink:0}
+.outro-info{flex:1;min-width:0}
+.outro-nome{font-size:.85rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.outro-cap{font-size:.72rem;color:var(--muted);margin-top:2px}
+.outro-ovr{
+  font-family:'Bebas Neue',sans-serif;font-size:1.6rem;color:var(--black);
+  line-height:1;flex-shrink:0;
+}
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════
+     SEÇÃO: HOME
+══════════════════════════════════════ -->
+<section id="s-home" class="ativo">
+  <div class="home-hero">
+    <div class="home-eyebrow">
+      <span class="label">Football Manager</span>
+      <span class="home-eyebrow-line"></span>
+    </div>
+    <div class="home-title-block">
+      <span class="home-t1">ERA UMA VEZ</span>
+      <span class="home-t2">NA FIRMINO</span>
+      <p class="home-tagline">Monte o elenco dos seus sonhos com jogadores históricos e modernos. Draft ao vivo ou solo.</p>
+    </div>
+    <!-- Campo SVG decorativo -->
+    <svg class="home-field" viewBox="0 0 320 200" xmlns="http://www.w3.org/2000/svg">
+      <rect width="320" height="200" fill="#2E7D32"/>
+      <!-- faixas do campo -->
+      <rect x="0" y="0" width="40" height="200" fill="#2A7330" opacity=".7"/>
+      <rect x="80" y="0" width="40" height="200" fill="#2A7330" opacity=".7"/>
+      <rect x="160" y="0" width="40" height="200" fill="#2A7330" opacity=".7"/>
+      <rect x="240" y="0" width="40" height="200" fill="#2A7330" opacity=".7"/>
+      <!-- linhas -->
+      <rect x="10" y="10" width="300" height="180" fill="none" stroke="rgba(255,255,255,.35)" stroke-width="1.5"/>
+      <line x1="160" y1="10" x2="160" y2="190" stroke="rgba(255,255,255,.3)" stroke-width="1"/>
+      <circle cx="160" cy="100" r="28" fill="none" stroke="rgba(255,255,255,.3)" stroke-width="1"/>
+      <circle cx="160" cy="100" r="2.5" fill="rgba(255,255,255,.5)"/>
+      <!-- grande área esquerda -->
+      <rect x="10" y="55" width="48" height="90" fill="none" stroke="rgba(255,255,255,.3)" stroke-width="1"/>
+      <!-- grande área direita -->
+      <rect x="262" y="55" width="48" height="90" fill="none" stroke="rgba(255,255,255,.3)" stroke-width="1"/>
+      <!-- pequena área esquerda -->
+      <rect x="10" y="78" width="22" height="44" fill="none" stroke="rgba(255,255,255,.25)" stroke-width="1"/>
+      <!-- pequena área direita -->
+      <rect x="288" y="78" width="22" height="44" fill="none" stroke="rgba(255,255,255,.25)" stroke-width="1"/>
+    </svg>
+  </div>
+
+  <div class="home-ctas">
+    <button class="btn btn-primary" onclick="ir('s-criar')">CRIAR SALA →</button>
+    <button class="btn btn-secondary" onclick="ir('s-entrar')">ENTRAR NA SALA</button>
+  </div>
+
+  <div class="home-return-strip">
+    <span class="label">Tem código?</span>
+    <input id="home-code" type="text" placeholder="FIR-4K2" maxlength="7" autocomplete="off" autocapitalize="characters">
+    <button class="btn btn-primary btn-sm" onclick="retornarPorCodigo()">→</button>
+  </div>
+
+  <div class="home-steps">
+    <div class="step-item">
+      <div class="step-n">01</div>
+      <div class="step-t">Draft</div>
+      <div class="step-d">Sorteie 5 opções e monte 18 jogadores</div>
+    </div>
+    <div class="step-item">
+      <div class="step-n">02</div>
+      <div class="step-t">Identidade</div>
+      <div class="step-d">Crie seu clube com cores e escudo</div>
+    </div>
+    <div class="step-item">
+      <div class="step-n">03</div>
+      <div class="step-t">Simule</div>
+      <div class="step-d">Temporada com teus rivais</div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════
+     SEÇÃO: CRIAR SALA
+══════════════════════════════════════ -->
+<section id="s-criar">
+  <div class="topo">
+    <div><div class="topo-logo">ERA UMA VEZ</div><div class="topo-sub">Criar Sala</div></div>
+  </div>
+  <div class="form-wrap">
+    <button class="back-btn" onclick="ir('s-home')">Voltar</button>
+    <div class="form-title">NOVA SALA</div>
+    <p class="form-sub">Jogue solo contra bots lendários ou crie uma sala e convide até 10 técnicos para o draft.</p>
+    <div class="field"><label>Nome da sala</label><input id="c-nome" type="text" placeholder="Liga dos Campeões" maxlength="30"></div>
+    <div class="field"><label>Senha da sala</label><input id="c-senha" type="password" placeholder="mínimo 3 caracteres" autocomplete="new-password"></div>
+    <div class="field"><label>Seu nome de técnico</label><input id="c-nick" type="text" placeholder="Pep Guardiola Jr." maxlength="25"></div>
+    <div class="field">
+      <label>Número de participantes</label>
+      <select id="c-max" onchange="toggleDif()">
+        <option value="1">1 jogador (Solo)</option>
+        <option value="2">2 técnicos</option><option value="3">3 técnicos</option>
+        <option value="4">4 técnicos</option><option value="5">5 técnicos</option>
+        <option value="6">6 técnicos</option><option value="7">7 técnicos</option>
+        <option value="8">8 técnicos</option><option value="9">9 técnicos</option>
+        <option value="10" selected>10 técnicos</option>
+      </select>
+    </div>
+    <div class="field dn" id="c-dif-wrap">
+      <label>Dificuldade dos bots</label>
+      <select id="c-dif">
+        <option value="facil">Fácil — picks aleatórios</option>
+        <option value="normal" selected>Normal — top 3 por OVR</option>
+        <option value="dificil">Difícil — melhor custo-benefício</option>
+      </select>
+    </div>
+    <div id="c-msg" class="msg"></div>
+    <button class="btn btn-primary" onclick="criarSala()">CRIAR SALA →</button>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════
+     SEÇÃO: ENTRAR NA SALA
+══════════════════════════════════════ -->
+<section id="s-entrar">
+  <div class="topo">
+    <div><div class="topo-logo">ERA UMA VEZ</div><div class="topo-sub">Entrar na Sala</div></div>
+  </div>
+  <div class="form-wrap">
+    <button class="back-btn" onclick="ir('s-home')">Voltar</button>
+    <div class="form-title">ENTRAR NA SALA</div>
+    <p class="form-sub">Use o código e a senha fornecidos pelo criador da sala.</p>
+    <div class="field"><label>Código da sala</label><input id="e-room" type="text" placeholder="ABCDEF" maxlength="8" autocapitalize="characters" style="text-transform:uppercase;letter-spacing:.12em;font-family:'Courier New',monospace"></div>
+    <div class="field"><label>Senha da sala</label><input id="e-senha" type="password" placeholder="senha da sala"></div>
+    <div class="field"><label>Seu nome de técnico</label><input id="e-nick" type="text" placeholder="Mourinho da Silva" maxlength="25"></div>
+    <div id="e-msg" class="msg"></div>
+    <button class="btn btn-primary" onclick="entrarSala()">ENTRAR →</button>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════
+     SEÇÃO: RETORNAR POR CÓDIGO
+══════════════════════════════════════ -->
+<section id="s-codigo">
+  <div class="topo">
+    <div><div class="topo-logo">ERA UMA VEZ</div><div class="topo-sub">Retornar ao Jogo</div></div>
+  </div>
+  <div class="form-wrap">
+    <button class="back-btn" onclick="ir('s-home')">Voltar</button>
+    <div class="form-title">SEU CÓDIGO</div>
+    <p class="form-sub">Digite o código pessoal que você recebeu ao criar ou entrar em uma sala.</p>
+    <div class="field">
+      <label>Código pessoal</label>
+      <input id="cod-input" type="text" placeholder="FIR-4K2" maxlength="7"
+        autocapitalize="characters" autocomplete="off"
+        style="text-transform:uppercase;letter-spacing:.25em;font-family:'Courier New',monospace;font-size:1.4rem;text-align:center"
+        oninput="this.value=this.value.toUpperCase()">
+    </div>
+    <div id="cod-msg" class="msg"></div>
+    <button class="btn btn-primary" onclick="buscarPorCodigo()">RETOMAR JOGO →</button>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════
+     SEÇÃO: IDENTIDADE DO CLUBE
+══════════════════════════════════════ -->
+<section id="s-identidade">
+  <div class="topo">
+    <div><div class="topo-logo">ERA UMA VEZ</div><div class="topo-sub">Identidade do Clube</div></div>
+  </div>
+  <div class="ident-wrap">
+    <svg id="esc-preview" class="escudo-preview" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+      <path id="ep-shape" d="" fill="#1a1a1a"/>
+      <g id="ep-detail"></g>
+      <text id="ep-text" x="50" y="60" text-anchor="middle" font-family="'Bebas Neue',sans-serif"
+        font-size="22" fill="#ffffff">FC</text>
+    </svg>
+
+    <div class="field"><label>Nome do clube</label><input id="id-nome" type="text" placeholder="Firmino FC" maxlength="25" oninput="atualizarEscudo()"></div>
+
+    <div class="color-row">
+      <div class="color-field"><label>Cor principal</label><input id="id-p" type="color" value="#1a1a1a" oninput="atualizarEscudo()"></div>
+      <div class="color-field"><label>Cor texto</label><input id="id-t" type="color" value="#ffffff" oninput="atualizarEscudo()"></div>
+      <div class="color-field"><label>Detalhe</label><input id="id-a" type="color" value="#fbbf24" oninput="atualizarEscudo()"></div>
+    </div>
+
+    <p class="label" style="margin-bottom:8px">Formato do escudo</p>
+    <div class="shape-row" id="shape-row">
+      <button class="shape-btn sel" data-s="classico"  onclick="selShape(this,'classico')">Clássico</button>
+      <button class="shape-btn" data-s="gothico"   onclick="selShape(this,'gothico')">Gótico</button>
+      <button class="shape-btn" data-s="moderno"   onclick="selShape(this,'moderno')">Moderno</button>
+      <button class="shape-btn" data-s="redondo"   onclick="selShape(this,'redondo')">Redondo</button>
+      <button class="shape-btn" data-s="triangular" onclick="selShape(this,'triangular')">Triangular</button>
+      <button class="shape-btn" data-s="escudo_duplo" onclick="selShape(this,'escudo_duplo')">Duplo</button>
+    </div>
+
+    <p class="label" style="margin-bottom:8px;margin-top:14px">Detalhe do escudo</p>
+    <div class="detail-row" id="detail-row">
+      <button class="detail-btn sel" data-d="simples" onclick="selDetail(this,'simples')">Liso</button>
+      <button class="detail-btn" data-d="faixa_h" onclick="selDetail(this,'faixa_h')">Faixa H</button>
+      <button class="detail-btn" data-d="faixa_v" onclick="selDetail(this,'faixa_v')">Faixa V</button>
+      <button class="detail-btn" data-d="chevron" onclick="selDetail(this,'chevron')">Chevron</button>
+      <button class="detail-btn" data-d="cruz"    onclick="selDetail(this,'cruz')">Cruz</button>
+    </div>
+
+    <div id="id-msg" class="msg" style="margin-top:14px"></div>
+    <button class="btn btn-primary" style="margin-top:16px" onclick="salvarIdentidade()">SALVAR IDENTIDADE →</button>
+    <button class="btn btn-ghost" style="margin-top:8px" onclick="entrarNoLobby()">Fazer depois no lobby</button>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════
+     SEÇÃO: LOBBY
+══════════════════════════════════════ -->
+<section id="s-lobby">
+  <div class="lobby-header">
+    <div class="lobby-sala bebas" id="lb-title">Carregando...</div>
+    <div class="lobby-meta">
+      <span class="lobby-code-pill">📋 <span id="lb-code">—</span></span>
+      <span class="lobby-code-pill">🔑 <span id="lb-pcode">—</span></span>
+    </div>
+  </div>
+
+  <div id="tempo-banner-lobby" class="tempo-banner">
+    <span id="tb-lobby-texto">⏱ Tempo solicitado</span>
+    <span id="tb-lobby-seg" class="tempo-seg">60</span>
+  </div>
+
+  <div class="lobby-body">
+    <!-- normal -->
+    <div id="lobby-normal">
+      <p class="label" style="margin-bottom:10px">Participantes</p>
+      <div class="participant-list" id="lb-lista"></div>
+
+      <div id="lb-pcode-reveal" class="pcode-reveal dn">
+        <div class="pcode-label">Seu código pessoal</div>
+        <div class="pcode-value" id="lb-pcode-val">—</div>
+        <div class="pcode-hint">Anote este código. Você pode usá-lo para retornar a qualquer momento.</div>
+      </div>
+
+      <div class="lobby-actions" id="lb-acoes">
+        <div id="lb-id-wrap">
+          <button class="btn btn-secondary" onclick="ir('s-identidade')">CRIAR IDENTIDADE DO CLUBE</button>
+        </div>
+        <div id="lb-start-wrap" class="dn">
+          <button class="btn btn-primary" onclick="iniciarDraft()">INICIAR DRAFT →</button>
+        </div>
+        <button class="btn btn-ghost btn-sm" onclick="solicitarTempo()">⏱ Pedir tempo</button>
+      </div>
+    </div>
+
+    <!-- retomando -->
+    <div id="lobby-retomando" class="dn">
+      <div class="card" style="text-align:center;padding:24px">
+        <div class="bebas" style="font-size:1.6rem;margin-bottom:8px">AGUARDANDO JOGADORES</div>
+        <p style="font-size:.82rem;color:var(--muted);margin-bottom:16px">Aguardando que todos retornem à sala.</p>
+        <div id="lb-ret-lista" class="participant-list"></div>
+      </div>
+    </div>
+
+    <div id="lb-msg" class="msg" style="margin-top:10px"></div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════
+     SEÇÃO: DRAFT
+══════════════════════════════════════ -->
+<section id="s-draft">
+  <div class="draft-header">
+    <div class="draft-h-left">
+      <div class="draft-h-rodada">
+        PICK <span id="dh-pick">1</span><span>/</span><span id="dh-total">180</span>
+      </div>
+      <div class="draft-h-cap">
+        CAP <span class="draft-h-cap-val" id="dh-cap">200</span>
+      </div>
+    </div>
+    <div class="draft-h-right">
+      <span class="draft-vez-badge" id="dh-vez-badge">SUA VEZ</span>
+    </div>
+  </div>
+
+  <div id="tempo-banner-draft" class="tempo-banner">
+    <span id="tb-draft-texto">⏱ Tempo solicitado</span>
+    <span id="tb-draft-seg" class="tempo-seg">60</span>
+  </div>
+
+  <div class="draft-body">
+    <!-- Coluna Picks -->
+    <div class="draft-picks-col">
+      <div class="picks-title">
+        <span class="label">Suas Opções</span>
+        <span class="label" id="pick-rodada-lbl">Rodada 1</span>
+      </div>
+      <div id="picks-lista">
+        <div class="picks-loading">Aguardando sorteio...</div>
+      </div>
+      <button class="btn btn-primary btn-confirmar-pick dn" id="btn-confirmar-pick" onclick="confirmarPick()">
+        CONFIRMAR PICK →
+      </button>
+      <button class="btn btn-ghost btn-sm" style="margin-top:8px" id="btn-skip-pick" onclick="skipPick()">
+        Passar a vez
+      </button>
+    </div>
+
+    <!-- Coluna Campo + BoxScore -->
+    <div class="draft-field-col">
+      <div class="field-title">
+        <span class="label">Campo</span>
+        <span class="label" id="field-clube-nome">Seu Clube</span>
+      </div>
+
+      <!-- Campo SVG -->
+      <div class="campo-svg-wrap">
+        <svg id="campo-draft" viewBox="0 0 220 320" xmlns="http://www.w3.org/2000/svg" style="width:100%;display:block">
+          <!-- campo -->
+          <rect width="220" height="320" fill="#2E7D32"/>
+          <rect x="0"  y="0"  width="55" height="320" fill="#2A7330" opacity=".6"/>
+          <rect x="110" y="0" width="55" height="320" fill="#2A7330" opacity=".6"/>
+          <!-- linhas -->
+          <rect x="8" y="8" width="204" height="304" fill="none" stroke="rgba(255,255,255,.3)" stroke-width="1.5"/>
+          <line x1="8" y1="160" x2="212" y2="160" stroke="rgba(255,255,255,.25)" stroke-width="1"/>
+          <circle cx="110" cy="160" r="35" fill="none" stroke="rgba(255,255,255,.25)" stroke-width="1"/>
+          <circle cx="110" cy="160" r="2.5" fill="rgba(255,255,255,.4)"/>
+          <!-- área ofensiva -->
+          <rect x="42" y="8"  width="136" height="60" fill="none" stroke="rgba(255,255,255,.25)" stroke-width="1"/>
+          <rect x="76" y="8"  width="68"  height="28" fill="none" stroke="rgba(255,255,255,.2)"  stroke-width="1"/>
+          <!-- área defensiva -->
+          <rect x="42" y="252" width="136" height="60" fill="none" stroke="rgba(255,255,255,.25)" stroke-width="1"/>
+          <rect x="76" y="284" width="68"  height="28" fill="none" stroke="rgba(255,255,255,.2)"  stroke-width="1"/>
+          <!-- posições -->
+          <g id="campo-posicoes"></g>
+        </svg>
+      </div>
+
+      <!-- Box Score -->
+      <div class="boxscore">
+        <div class="boxscore-title">BOX SCORE</div>
+        <div class="bs-cap-bar"><div class="bs-cap-fill" id="bs-cap-fill" style="width:0%"></div></div>
+        <div class="bs-cap-label">
+          <span id="bs-cap-usado">0 pts usados</span>
+          <span id="bs-cap-rest">200 pts restantes</span>
+        </div>
+        <div class="bs-list" id="bs-list"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════
+     SEÇÃO: DRAFT CONCLUÍDO
+══════════════════════════════════════ -->
+<section id="s-concluido">
+  <div class="concluido-header">
+    <div class="concluido-t">DRAFT<br>CONCLUÍDO</div>
+    <div class="concluido-sub" id="conc-sub">18 jogadores selecionados</div>
+  </div>
+  <div class="concluido-body">
+    <div id="conc-meu-elenco" class="elenco-card dn">
+      <div class="elenco-head">
+        <svg id="conc-escudo" width="28" height="28" viewBox="0 0 100 100"><path d="M50,10 L90,25 L90,65 Q90,85 50,95 Q10,85 10,65 L10,25 Z" fill="#666"/></svg>
+        <span class="bebas" id="conc-nome-clube">Meu Clube</span>
+        <span class="badge badge-dark" style="margin-left:auto" id="conc-cap-usado">—</span>
+      </div>
+      <div class="elenco-rows" id="conc-rows"></div>
+    </div>
+
+    <div class="divider"></div>
+
+    <p class="label" style="margin-bottom:12px">Outros elencos</p>
+    <div class="outros-list" id="conc-outros"></div>
+
+    <button class="btn btn-ghost" style="margin-top:20px" onclick="alert('Próxima etapa: simulação da temporada (em breve)!')">
+      Simular Temporada →
+    </button>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════
+     MODAL — CÓDIGO PESSOAL
+══════════════════════════════════════ -->
+<div class="modal-overlay" id="modal-pcode">
+  <div class="modal-box">
+    <div class="modal-title">SEU CÓDIGO</div>
+    <div class="modal-sub">Guarde este código para retornar ao seu jogo a qualquer momento. Você só precisa dele.</div>
+    <div class="pcode-reveal">
+      <div class="pcode-label">Código pessoal</div>
+      <div class="pcode-value" id="modal-pcode-val">—</div>
+      <div class="pcode-hint">Digite este código na tela inicial para retomar exatamente de onde parou.</div>
+    </div>
+    <div class="modal-btns">
+      <button class="btn btn-primary" onclick="fecharModalPcode()">ENTENDIDO →</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast-wrap" id="toast-wrap"></div>
+
+<!-- ══════════════════════════════════════
+     JAVASCRIPT
+══════════════════════════════════════ -->
+<script>
+// ════════════════════════════════════════════════
+//  CONFIG — troque pelo URL do seu Web App
+// ════════════════════════════════════════════════
+var API = 'https://script.google.com/macros/s/AKfycbwnjcMCR6p40E3oGEfRo0lfSX6J_hnma9xrrKniSXGbPKzSfCPrHClYgUneHybjt585pw/exec';
+
+// ════════════════════════════════════════════════
+//  ESTADO GLOBAL
+// ════════════════════════════════════════════════
+var S = { roomId:null, userId:null, nomeSala:null, nick:null, dono:false,
+          clubId:null, temClube:false, solo:false, personalCode:null };
+var D = {
+  ativo:false, ordem:[], pickAtual:0, rodadaAtual:1, totalRodadas:18,
+  currentClubId:null, isMinhaVez:false, meuClubeId:null,
+  picksFeitos:{}, salarios:{}, salaryCap:200, playerMap:{},
+  takenNomeReais:[], clubeMap:{}, selectedPlayer:null,
+  choices:[], choiceLoading:false, pollDraft:null
+};
+var TEMPO = { ativo:false, segundos:0, timer:null, quem:null };
+var pollLobby = null;
+
+// ─── ESCUDOS ──────────────────────────────────────
+var SHAPES = {
+  classico:    'M50,10 L90,25 L90,65 Q90,85 50,95 Q10,85 10,65 L10,25 Z',
+  escudo_duplo:'M50,10 L85,20 L85,60 Q85,80 50,92 Q15,80 15,60 L15,20 Z',
+  gothico:     'M50,8 L88,18 L88,55 Q88,75 50,90 Q12,75 12,55 L12,18 Z',
+  triangular:  'M50,8 L90,80 Q70,92 50,95 Q30,92 10,80 Z',
+  redondo:     'M50,12 A38,38 0 1,1 49.9,12 Z',
+  moderno:     'M50,8 L88,22 L88,62 L70,78 L50,90 L30,78 L12,62 L12,22 Z'
+};
+var DETAILS = {
+  simples:  '',
+  faixa_h:  '<line x1="10" y1="50" x2="90" y2="50" stroke="__ACC__" stroke-width="8" opacity=".7"/>',
+  faixa_v:  '<line x1="50" y1="10" x2="50" y2="90" stroke="__ACC__" stroke-width="8" opacity=".7"/>',
+  chevron:  '<polyline points="10,40 50,65 90,40" fill="none" stroke="__ACC__" stroke-width="7" opacity=".7"/>',
+  cruz:     '<line x1="50" y1="12" x2="50" y2="90" stroke="__ACC__" stroke-width="6" opacity=".7"/><line x1="12" y1="50" x2="88" y2="50" stroke="__ACC__" stroke-width="6" opacity=".7"/>'
+};
+
+// ─── POSIÇÕES NO CAMPO (layout 4-3-3 base) ────────
+var CAMPO_POS = [
+  {pos:'GOL', x:110, y:290, label:'GOL'},
+  {pos:'LD',  x:175, y:240, label:'LD'},
+  {pos:'ZAG', x:140, y:252, label:'ZAG'},
+  {pos:'ZAG', x:80,  y:252, label:'ZAG'},
+  {pos:'LE',  x:45,  y:240, label:'LE'},
+  {pos:'VOL', x:110, y:195, label:'VOL'},
+  {pos:'MEI', x:155, y:175, label:'MEI'},
+  {pos:'MEI', x:65,  y:175, label:'MEI'},
+  {pos:'CA',  x:165, y:120, label:'CA'},
+  {pos:'CA',  x:110, y:105, label:'CA'},
+  {pos:'CA',  x:55,  y:120, label:'CA'}
+];
+
+// ════════════════════════════════════════════════
+//  NAVEGAÇÃO
+// ════════════════════════════════════════════════
+function ir(id) {
+  document.querySelectorAll('section').forEach(function(s){ s.classList.remove('ativo'); });
+  var sec = document.getElementById(id);
+  if (sec) sec.classList.add('ativo');
+  window.scrollTo(0,0);
+}
+
+// ════════════════════════════════════════════════
+//  HTTP
+// ════════════════════════════════════════════════
+function post(action, body, cb) {
+  body.action = action;
+  fetch(API, { method:'POST', redirect:'follow',
+    headers:{'Content-Type':'text/plain'}, body:JSON.stringify(body) })
+    .then(function(r){ return r.json(); }).then(cb)
+    .catch(function(e){ cb({ success:false, error:'Erro de rede: '+e.message }); });
+}
+function get(params, cb) {
+  var qs = Object.keys(params).map(function(k){ return k+'='+encodeURIComponent(params[k]); }).join('&');
+  fetch(API+'?'+qs, { method:'GET', redirect:'follow' })
+    .then(function(r){ return r.json(); }).then(cb)
+    .catch(function(e){ cb({ success:false, error:'Erro de rede: '+e.message }); });
+}
+
+// ════════════════════════════════════════════════
+//  TOAST
+// ════════════════════════════════════════════════
+function toast(msg, tipo) {
+  var wrap = document.getElementById('toast-wrap');
+  var el = document.createElement('div');
+  el.className = 'toast-item' + (tipo ? ' '+tipo : '');
+  el.textContent = msg;
+  wrap.appendChild(el);
+  setTimeout(function(){ el.remove(); }, 3500);
+}
+
+// ════════════════════════════════════════════════
+//  MSG INLINE
+// ════════════════════════════════════════════════
+function msg(id, tipo, texto) {
+  var el = document.getElementById(id);
+  if (!el) return;
+  el.textContent = texto;
+  el.className = 'msg' + (tipo ? ' '+tipo : '');
+  if (!tipo) el.style.display='none'; else el.style.display='block';
+}
+
+// ════════════════════════════════════════════════
+//  CÓDIGO PESSOAL
+// ════════════════════════════════════════════════
+function mostrarModalPcode(code) {
+  S.personalCode = code;
+  document.getElementById('modal-pcode-val').textContent = code;
+  document.getElementById('modal-pcode').classList.add('ativo');
+  // Mostrar no lobby também
+  document.getElementById('lb-pcode').textContent = code;
+  document.getElementById('lb-pcode-val').textContent = code;
+  document.getElementById('lb-pcode-reveal').classList.remove('dn');
+}
+function fecharModalPcode() {
+  document.getElementById('modal-pcode').classList.remove('ativo');
+}
+
+// ════════════════════════════════════════════════
+//  CRIAR SALA (multiplayer)
+// ════════════════════════════════════════════════
+function toggleDif() {
+  var maxH = parseInt(document.getElementById('c-max').value);
+  var wrap = document.getElementById('c-dif-wrap');
+  var campoNome = document.getElementById('c-nome');
+  var campoSenha = document.getElementById('c-senha');
+  if (maxH === 1) {
+    wrap.classList.remove('dn');
+    campoNome.closest('.field').classList.add('dn');
+    campoSenha.closest('.field').classList.add('dn');
+  } else {
+    wrap.classList.add('dn');
+    campoNome.closest('.field').classList.remove('dn');
+    campoSenha.closest('.field').classList.remove('dn');
+  }
+}
+function criarSala() {
+  var maxH = parseInt(v('c-max'))||10;
+  var nick = v('c-nick');
+  if (!nick) return msg('c-msg','erro','Digite seu nome de técnico.');
+
+  if (maxH === 1) {
+    // Modo solo integrado
+    var dif = v('c-dif') || 'normal';
+    msg('c-msg','info','Montando a liga...');
+    post('createSoloRoom', { nomeTecnico:nick, numTimes:10, dificuldade:dif }, function(r) {
+      if (!r.success) return msg('c-msg','erro',r.error);
+      S.roomId=r.roomId; S.userId=r.userId; S.nomeSala=r.nomeSala;
+      S.nick=r.nomeTecnico; S.dono=true; S.solo=true;
+      entrarNoLobby();
+      if (r.personalCode) mostrarModalPcode(r.personalCode);
+    });
+  } else {
+    var nome=v('c-nome'), senha=v('c-senha');
+    if (!nome||!senha||!nick) return msg('c-msg','erro','Preencha todos os campos.');
+    msg('c-msg','info','Criando sala...');
+    post('createRoom', { nomeSala:nome, senha:senha, nomeTecnico:nick, maxHumanos:maxH }, function(r) {
+      if (!r.success) return msg('c-msg','erro',r.error);
+      S.roomId=r.roomId; S.userId=r.userId; S.nomeSala=r.nomeSala;
+      S.nick=r.nomeTecnico; S.dono=true; S.solo=false;
+      entrarNoLobby();
+      if (r.personalCode) mostrarModalPcode(r.personalCode);
+    });
+  }
+}
+
+// ════════════════════════════════════════════════
+//  ENTRAR NA SALA
+// ════════════════════════════════════════════════
+function entrarSala() {
+  var room=v('e-room').toUpperCase(), senha=v('e-senha'), nick=v('e-nick');
+  if (!room||!senha||!nick) return msg('e-msg','erro','Preencha todos os campos.');
+  msg('e-msg','info','Entrando na sala...');
+  post('joinRoom', { roomId:room, senha:senha, nomeTecnico:nick }, function(r) {
+    if (!r.success) return msg('e-msg','erro',r.error);
+    S.roomId=r.roomId; S.userId=r.userId; S.nomeSala=r.nomeSala;
+    S.nick=r.nomeTecnico; S.dono=r.isOwner||false; S.solo=false;
+    entrarNoLobby();
+    if (r.personalCode) mostrarModalPcode(r.personalCode);
+  });
+}
+
+// solo integrado em criarSala()
+
+// ════════════════════════════════════════════════
+//  RETORNAR POR CÓDIGO
+// ════════════════════════════════════════════════
+function retornarPorCodigo() {
+  var code = document.getElementById('home-code').value.trim().toUpperCase();
+  if (!code) { ir('s-codigo'); return; }
+  executarRetorno(code, 'home-code');
+}
+function buscarPorCodigo() {
+  var code = v('cod-input').trim().toUpperCase();
+  if (!code) return msg('cod-msg','erro','Digite o código.');
+  executarRetorno(code, 'cod-msg');
+}
+function executarRetorno(code, msgId) {
+  msg(msgId, 'info', 'Buscando jogo...');
+  get({ action:'resumeByCode', code:code }, function(r) {
+    if (!r.success) {
+      msg(msgId,'erro', r.error || 'Código não encontrado.');
+      return;
+    }
+    S.roomId = r.roomId; S.userId = r.userId;
+    S.nomeSala = r.nomeSala; S.nick = r.nomeTecnico;
+    S.dono = r.isOwner||false; S.solo = false;
+    S.personalCode = r.personalCode || code;
+    // Navegar para a tela certa
+    if (r.draftStatus === 'ativo') {
+      carregarClubeMap(iniciarTelaDraft);
+    } else if (r.draftStatus === 'concluido') {
+      carregarClubeMap(function(){ ir('s-concluido'); carregarConcluido(); });
+    } else {
+      entrarNoLobby();
+    }
+  });
+}
+
+// ════════════════════════════════════════════════
+//  LOBBY
+// ════════════════════════════════════════════════
+function entrarNoLobby() {
+  ir('s-lobby');
+  document.getElementById('lb-code').textContent = S.roomId || '—';
+  if (S.personalCode) {
+    document.getElementById('lb-pcode').textContent = S.personalCode;
+    document.getElementById('lb-pcode-val').textContent = S.personalCode;
+    document.getElementById('lb-pcode-reveal').classList.remove('dn');
+  }
+  if (pollLobby) clearInterval(pollLobby);
+  pollAgora();
+  pollLobby = setInterval(pollAgora, 5000);
+}
+
+function pollAgora() {
+  get({ action:'getRoomState', roomId:S.roomId, userId:S.userId }, function(r) {
+    if (!r.success) return;
+    handleTempoBanner(r.sala.tempoSolicitado, 'lobby');
+    var sala = r.sala;
+    S.dono = r.usuario && r.usuario.isOwner;
+    if (sala.status==='draft' && document.getElementById('s-lobby').classList.contains('ativo')) {
+      if (pollLobby) clearInterval(pollLobby);
+      carregarClubeMap(iniciarTelaDraft); return;
+    }
+    if (sala.status==='retomando') { renderLobbyRetomando(r); return; }
+    renderLobbyNormal(r);
+  });
+}
+
+function renderLobbyNormal(r) {
+  document.getElementById('lobby-normal').classList.remove('dn');
+  document.getElementById('lobby-retomando').classList.add('dn');
+  var sala = r.sala;
+  document.getElementById('lb-title').textContent = sala.nomeSala;
+  var partic = r.participantes || [];
+  var clubes  = r.clubes || [];
+  var html = '';
+  partic.forEach(function(p) {
+    var c = clubes.find(function(x){ return x.userId===p.userId; });
+    var isBot = p.tipo === 'bot';
+    var temId = c && c.statusClube==='identidade_ok';
+    html += '<div class="p-item">';
+    html += '<svg width="36" height="36" viewBox="0 0 100 100" class="p-escudo">'+svgEscudo(c)+'</svg>';
+    html += '<div class="p-info"><div class="p-nick">'+esc(p.nomeTecnico)+'</div>';
+    if (c) html += '<div class="p-clube">'+esc(c.nomeClube)+'</div>';
+    html += '</div>';
+    if (isBot) html += '<span class="badge badge-dark p-badge">BOT</span>';
+    else if (temId) html += '<span class="badge badge-green p-badge">PRONTO</span>';
+    else html += '<span class="badge badge-gold p-badge">PENDENTE</span>';
+    if (S.dono && !isBot && p.userId !== S.userId) {
+      html += '<button class="p-kick" onclick="kickP(\''+p.userId+'\')" title="Remover">✕</button>';
+    }
+    html += '</div>';
+  });
+  document.getElementById('lb-lista').innerHTML = html;
+
+  // Botões
+  var meuClube = clubes.find(function(c){ return c.userId===S.userId && c.statusClube==='identidade_ok'; });
+  S.temClube = !!meuClube;
+  if (meuClube) S.clubId = meuClube.clubId;
+  document.getElementById('lb-id-wrap').style.display = S.temClube ? 'none' : 'block';
+  // Botão iniciar só para dono com todos prontos
+  var humanos = partic.filter(function(p){ return p.tipo==='humano'; });
+  var prontos  = clubes.filter(function(c){ return c.tipo==='humano' && c.statusClube==='identidade_ok'; });
+  var todosOk  = humanos.length > 0 && prontos.length >= humanos.length;
+  var startWrap = document.getElementById('lb-start-wrap');
+  startWrap.classList.toggle('dn', !(S.dono && sala.draftStatus==='aguardando' && todosOk));
+}
+
+function renderLobbyRetomando(r) {
+  document.getElementById('lobby-normal').classList.add('dn');
+  document.getElementById('lobby-retomando').classList.remove('dn');
+}
+
+function iniciarDraft() {
+  if (!S.dono) return;
+  post('startDraft', { roomId:S.roomId, userId:S.userId }, function(r) {
+    if (!r.success) return toast(r.error, 'erro');
+    if (pollLobby) clearInterval(pollLobby);
+    carregarClubeMap(iniciarTelaDraft);
+  });
+}
+
+function kickP(uid) {
+  post('kickParticipant', { roomId:S.roomId, userId:S.userId, targetUserId:uid }, function(r) {
+    if (!r.success) toast(r.error, 'erro'); else toast('Participante removido.', 'ok');
+  });
+}
+
+// ════════════════════════════════════════════════
+//  IDENTIDADE DO CLUBE
+// ════════════════════════════════════════════════
+var selShapeId = 'classico', selDetailId = 'simples';
+function selShape(btn, id) {
+  selShapeId = id;
+  document.querySelectorAll('.shape-btn').forEach(function(b){ b.classList.remove('sel'); });
+  btn.classList.add('sel');
+  atualizarEscudo();
+}
+function selDetail(btn, id) {
+  selDetailId = id;
+  document.querySelectorAll('.detail-btn').forEach(function(b){ b.classList.remove('sel'); });
+  btn.classList.add('sel');
+  atualizarEscudo();
+}
+function atualizarEscudo() {
+  var p = document.getElementById('id-p').value;
+  var t = document.getElementById('id-t').value;
+  var a = document.getElementById('id-a').value;
+  var nome = document.getElementById('id-nome').value || 'FC';
+  var iniciais = nome.trim().split(/\s+/).map(function(w){ return w[0]; }).join('').toUpperCase().substring(0,3);
+  var shape = SHAPES[selShapeId] || SHAPES.classico;
+  var detail = (DETAILS[selDetailId]||'').replace(/__ACC__/g, a);
+  document.getElementById('ep-shape').setAttribute('d', shape);
+  document.getElementById('ep-shape').setAttribute('fill', p);
+  document.getElementById('ep-detail').innerHTML = detail;
+  document.getElementById('ep-text').setAttribute('fill', t);
+  document.getElementById('ep-text').textContent = iniciais;
+}
+function salvarIdentidade() {
+  var nome = v('id-nome'), p=v('id-p'), t=v('id-t'), a=v('id-a');
+  if (!nome) return msg('id-msg','erro','Digite o nome do clube.');
+  msg('id-msg','info','Salvando...');
+  post('saveClubIdentity', {
+    roomId:S.roomId, userId:S.userId,
+    nomeClube:nome, primaryColor:p, textColor:t, accentColor:a,
+    shapeId:selShapeId, detailId:selDetailId
+  }, function(r) {
+    if (!r.success) return msg('id-msg','erro',r.error);
+    S.clubId = r.clubId; S.temClube = true;
+    toast('Identidade salva!', 'ok');
+    entrarNoLobby();
+  });
+}
+
+// ════════════════════════════════════════════════
+//  CARREGAR CLUBEMAP
+// ════════════════════════════════════════════════
+function carregarClubeMap(callback) {
+  get({ action:'getRoomState', roomId:S.roomId, userId:S.userId }, function(r) {
+    if (!r.success) return;
+    D.clubeMap = {};
+    (r.clubes||[]).forEach(function(c){ D.clubeMap[c.clubId] = c; D.clubeMap[c.userId] = c; });
+    var meu = (r.clubes||[]).find(function(c){ return c.userId===S.userId; });
+    if (meu) { D.meuClubeId = meu.clubId; S.clubId = meu.clubId; }
+    if (callback) callback();
+  });
+}
+
+// ════════════════════════════════════════════════
+//  INICIAR TELA DRAFT
+// ════════════════════════════════════════════════
+function iniciarTelaDraft() {
+  ir('s-draft');
+  D.ativo = true;
+  atualizarCampo();
+  if (D.pollDraft) clearInterval(D.pollDraft);
+  pollDraft();
+  D.pollDraft = setInterval(pollDraft, 4000);
+}
+
+function pollDraft() {
+  get({ action:'getDraftState', roomId:S.roomId, userId:S.userId }, function(r) {
+    if (!r.success) return;
+    handleTempoBanner(r.tempoSolicitado, 'draft');
+    renderDraftState(r);
+  });
+}
+
+function renderDraftState(r) {
+  var totalPicks = (r.totalRodadas||18) * (r.totalTimes||10);
+  D.pickAtual   = r.pickAtual || 0;
+  D.ordem       = r.ordem     || [];
+  D.totalRodadas = r.totalRodadas || 18;
+  D.salaryCap    = r.salaryCap    || 200;
+  D.currentClubId = r.currentClubId || '';
+  D.isMinhaVez    = r.isMinhaVez   || false;
+  D.meuClubeId    = r.meuClubeId   || D.meuClubeId;
+  D.picksFeitos   = r.picksFeitos  || {};
+  D.salarios      = r.salarios     || {};
+
+  // PlayerMap
+  if (r.playerMap) D.playerMap = r.playerMap;
+  if (r.takenNomeReais) D.takenNomeReais = r.takenNomeReais;
+
+  // Header
+  var rodada = Math.floor(D.pickAtual / (D.ordem.length||1)) + 1;
+  document.getElementById('dh-pick').textContent  = D.pickAtual+1;
+  document.getElementById('dh-total').textContent = totalPicks;
+  document.getElementById('pick-rodada-lbl').textContent = 'Rodada '+rodada+'/'+D.totalRodadas;
+
+  var capUsado = D.salarios[D.meuClubeId] || 0;
+  var capRest  = D.salaryCap - capUsado;
+  document.getElementById('dh-cap').textContent = capRest;
+
+  var vezBadge = document.getElementById('dh-vez-badge');
+  if (D.isMinhaVez) {
+    vezBadge.textContent = 'SUA VEZ';
+    vezBadge.className = 'draft-vez-badge';
+  } else {
+    var clube = D.clubeMap[D.currentClubId];
+    var nomeClube = clube ? clube.nomeClube : '...';
+    vezBadge.textContent = nomeClube;
+    vezBadge.className = 'draft-vez-badge bot-vez';
+  }
+
+  // Box score
+  atualizarBoxScore();
+  atualizarCampo();
+
+  // Choices
+  if (D.isMinhaVez && !D.choiceLoading) {
+    carregarChoices();
+  } else if (!D.isMinhaVez) {
+    document.getElementById('picks-lista').innerHTML =
+      '<div class="picks-loading">Aguardando o pick de '+vezBadge.textContent+'...</div>';
+    document.getElementById('btn-confirmar-pick').classList.add('dn');
+  }
+
+  // Draft concluído?
+  if (r.draftStatus === 'concluido') {
+    if (D.pollDraft) clearInterval(D.pollDraft);
+    setTimeout(function(){ ir('s-concluido'); carregarConcluido(); }, 800);
+  }
+}
+
+// ════════════════════════════════════════════════
+//  CHOICES
+// ════════════════════════════════════════════════
+function carregarChoices() {
+  if (D.choiceLoading) return;
+  D.choiceLoading = true;
+  document.getElementById('picks-lista').innerHTML = '<div class="picks-loading">Sorteando opções...</div>';
+  get({ action:'getDraftChoices', roomId:S.roomId, userId:S.userId, clubId:D.meuClubeId }, function(r) {
+    D.choiceLoading = false;
+    if (!r.success) { document.getElementById('picks-lista').innerHTML = '<div class="picks-loading">'+esc(r.error)+'</div>'; return; }
+    D.choices = r.choices || [];
+    renderChoices();
+  });
+}
+
+function renderChoices() {
+  var capUsado = D.salarios[D.meuClubeId] || 0;
+  var capRest  = D.salaryCap - capUsado;
+  var html = '';
+  D.choices.forEach(function(p, i) {
+    var pode = p.salaryCost <= capRest;
     var ovrCls = p.ovr>=90?'ovr-alto':p.ovr>=80?'ovr-med':'';
     var posCls = 'pos-'+(p.pos||'MEI');
     var sel = D.selectedPlayer && D.selectedPlayer.pid===p.pid;
