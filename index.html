@@ -1380,7 +1380,7 @@ function renderFormacoes() {
   Object.keys(FORMACOES).forEach(function(key) {
     var f = FORMACOES[key];
     var sel = formacaoSelecionada === key;
-    html += '<div class="form-card'+(sel?' sel':'')+'" onclick="selecionarFormacao(''+key+'')">';
+    html += '<div class="form-card'+(sel?' sel':'')+'" onclick="selecionarFormacao(\''+key+'\')">';
     html += '<div class="form-name">'+key+'</div>';
     html += '<div class="form-desc">'+f.desc+'</div>';
     html += '<svg class="form-mini" viewBox="0 0 220 320" xmlns="http://www.w3.org/2000/svg">';
