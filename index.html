@@ -499,11 +499,14 @@ section.ativo{display:block}
   background:#fff;border:1px solid var(--divider);border-radius:6px;
   padding:14px;margin-bottom:10px;
 }
+.admin-room-card.card-draft{border-left:3px solid #1B5E20}
+.admin-room-card.card-lobby{border-left:3px solid #0D47A1}
+.admin-room-card.card-enc{border-left:3px solid #ccc;opacity:.7}
 .admin-room-head{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:8px}
 .admin-room-id{font-family:'Courier New',monospace;font-size:.8rem;font-weight:700;
   letter-spacing:.12em;color:var(--black)}
 .admin-room-nome{font-size:.88rem;font-weight:600;color:var(--black);margin-top:1px}
-.admin-room-meta{display:flex;flex-wrap:wrap;gap:6px;font-size:.7rem;color:var(--muted);margin-bottom:10px}
+.admin-room-meta{display:flex;flex-wrap:wrap;gap:6px;font-size:.7rem;color:var(--muted);margin-bottom:8px}
 .admin-room-meta span{display:inline-flex;align-items:center;gap:3px}
 .admin-badge-status{
   display:inline-flex;align-items:center;padding:3px 9px;border-radius:20px;
@@ -513,6 +516,23 @@ section.ativo{display:block}
 .status-lobby{background:#E3F2FD;color:#0D47A1}
 .status-draft{background:#E8F5E9;color:#1B5E20}
 .status-encerrada,.status-expirada{background:#FFEBEE;color:#B71C1C}
+.status-aguardando_inicio{background:#FFF8E1;color:#E65100}
+/* progress bar */
+.admin-progress-wrap{background:#f0f0f0;border-radius:20px;height:6px;margin-bottom:10px;overflow:hidden}
+.admin-progress-bar{height:100%;background:#1E7A47;border-radius:20px;transition:width .4s}
+.admin-progress-label{font-size:.65rem;color:var(--muted);margin-bottom:6px;display:flex;justify-content:space-between}
+/* picker destaque */
+.admin-picker-now{background:#E8F5E9;border-radius:4px;padding:4px 8px;font-size:.72rem;
+  color:#1B5E20;font-weight:600;margin-bottom:10px;display:flex;align-items:center;gap:5px}
+/* participantes */
+.admin-participants{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:10px}
+.admin-part-tag{
+  display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:20px;
+  font-size:.65rem;font-weight:600;background:#f5f5f5;color:#333;
+  border:1px solid rgba(0,0,0,.08);
+}
+.admin-part-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.admin-part-bot{opacity:.6;font-style:italic}
 .admin-room-actions{display:flex;gap:8px;flex-wrap:wrap}
 .admin-btn{
   padding:7px 14px;border:none;border-radius:4px;cursor:pointer;
@@ -526,6 +546,19 @@ section.ativo{display:block}
 .admin-btn-warn{background:#FFF8E1;color:#E65100;border:1px solid #FFE0B2}
 .admin-btn-warn:hover{background:#E65100;color:#fff}
 .admin-inativo{color:#B71C1C;font-weight:700}
+/* filtro tabs */
+.admin-filter-tabs{display:flex;gap:4px;margin-bottom:14px;flex-wrap:wrap}
+.admin-filter-tab{
+  padding:5px 14px;border-radius:20px;font-size:.7rem;font-weight:700;letter-spacing:.06em;
+  text-transform:uppercase;cursor:pointer;border:1px solid var(--divider);background:#fff;
+  transition:all .12s;color:var(--muted);
+}
+.admin-filter-tab.ativo{background:#0D1B2A;color:#fff;border-color:#0D1B2A}
+/* auto-refresh */
+.admin-refresh-row{display:flex;align-items:center;gap:10px;margin-bottom:18px;flex-wrap:wrap}
+.admin-refresh-toggle{display:flex;align-items:center;gap:6px;font-size:.72rem;color:var(--muted);cursor:pointer}
+.admin-refresh-toggle input{margin:0;cursor:pointer}
+.admin-last-update{font-size:.65rem;color:var(--muted);flex:1;text-align:right}
 /* login */
 .admin-login-wrap{max-width:360px;margin:60px auto;padding:0 20px}
 .admin-login-title{font-family:'Bebas Neue',sans-serif;font-size:2.2rem;color:var(--black);
@@ -1881,7 +1914,14 @@ document.getElementById('home-code').addEventListener('input', function(e) {
 // ════════════════════════════════════════════════
 //  ADMIN PANEL
 // ════════════════════════════════════════════════
-var ADMIN = { pwd: null, tapCount: 0, tapTimer: null };
+var ADMIN = {
+  pwd: null, tapCount: 0, tapTimer: null,
+  filtro: 'ativas',       // 'ativas' | 'draft' | 'todas'
+  autoRefresh: false,
+  autoIv: null,
+  lastUpdate: null,
+  rooms: []
+};
 
 function adminTap() {
   ADMIN.tapCount++;
@@ -1901,21 +1941,18 @@ function adminTap() {
 function adminLogin() {
   var pwd = document.getElementById('admin-pwd-input').value;
   if (!pwd) return;
-  document.getElementById('admin-login-msg').className = 'msg info';
-  document.getElementById('admin-login-msg').textContent = 'Verificando...';
-  document.getElementById('admin-login-msg').style.display = 'block';
-  // Validar via API (adminGetStats com a senha — se retornar ok, senha é válida)
+  var msg = document.getElementById('admin-login-msg');
+  msg.className = 'msg info'; msg.textContent = 'Verificando...'; msg.style.display = 'block';
   get({ action:'adminGetStats', adminPwd: pwd }, function(r) {
     if (!r.success) {
-      var el = document.getElementById('admin-login-msg');
-      el.className = 'msg erro';
-      el.textContent = r.error || 'Senha incorreta.';
-      el.style.display = 'block';
+      msg.className = 'msg erro';
+      msg.textContent = r.error || 'Senha incorreta.';
+      msg.style.display = 'block';
       document.getElementById('admin-pwd-input').value = '';
       return;
     }
     ADMIN.pwd = pwd;
-    document.getElementById('admin-login-msg').style.display = 'none';
+    msg.style.display = 'none';
     document.getElementById('admin-login-wrap').classList.add('dn');
     document.getElementById('admin-dashboard').classList.remove('dn');
     adminRenderStats(r);
@@ -1925,6 +1962,7 @@ function adminLogin() {
 
 function adminLogout() {
   ADMIN.pwd = null;
+  _adminStopAutoRefresh();
   document.getElementById('admin-login-wrap').classList.remove('dn');
   document.getElementById('admin-dashboard').classList.add('dn');
   document.getElementById('admin-pwd-input').value = '';
@@ -1941,67 +1979,147 @@ function adminCarregar() {
 }
 
 function adminRenderStats(r) {
-  document.getElementById('ast-total').textContent  = r.totalSalas  || 0;
-  document.getElementById('ast-ativas').textContent = r.ativas       || 0;
-  document.getElementById('ast-draft').textContent  = r.emDraft      || 0;
-  document.getElementById('ast-enc').textContent    = r.encerradas   || 0;
-  document.getElementById('ast-hum').textContent    = r.humanosAtivos || 0;
-  document.getElementById('ast-picks').textContent  = r.totalPicks   || 0;
+  document.getElementById('ast-total').textContent   = r.totalSalas   || 0;
+  document.getElementById('ast-ativas').textContent  = r.ativas        || 0;
+  document.getElementById('ast-draft').textContent   = r.emDraft       || 0;
+  document.getElementById('ast-enc').textContent     = r.encerradas    || 0;
+  document.getElementById('ast-hum').textContent     = r.humanosAtivos || 0;
+  document.getElementById('ast-picks').textContent   = r.totalPicks    || 0;
+}
+
+function adminSetFiltro(f) {
+  ADMIN.filtro = f;
+  document.querySelectorAll('.admin-filter-tab').forEach(function(el) {
+    el.classList.toggle('ativo', el.dataset.filtro === f);
+  });
+  adminRenderSalas(ADMIN.rooms);
 }
 
 function adminCarregarSalas() {
   if (!ADMIN.pwd) return;
-  document.getElementById('admin-rooms-lista').innerHTML = '<div class="admin-empty">Carregando...</div>';
+  document.getElementById('admin-rooms-lista').innerHTML = '<div class="admin-empty">Carregando salas...</div>';
   get({ action:'adminGetRooms', adminPwd: ADMIN.pwd }, function(r) {
-    if (!r.success) { document.getElementById('admin-rooms-lista').innerHTML = '<div class="admin-empty">'+esc(r.error)+'</div>'; return; }
-    adminRenderSalas(r.rooms || []);
+    if (!r.success) {
+      document.getElementById('admin-rooms-lista').innerHTML = '<div class="admin-empty">'+esc(r.error||'Erro ao carregar')+'</div>';
+      return;
+    }
+    ADMIN.rooms = r.rooms || [];
+    ADMIN.lastUpdate = new Date();
+    var el = document.getElementById('admin-last-update');
+    if (el) el.textContent = 'Atualizado: ' + ADMIN.lastUpdate.toLocaleTimeString('pt-BR');
+    adminRenderSalas(ADMIN.rooms);
   });
 }
 
 function adminRenderSalas(rooms) {
-  if (!rooms.length) {
-    document.getElementById('admin-rooms-lista').innerHTML = '<div class="admin-empty">Nenhuma sala encontrada.</div>';
+  // Filtro
+  var filtradas = rooms.filter(function(s) {
+    if (ADMIN.filtro === 'ativas')  return s.status === 'lobby' || s.status === 'aguardando_inicio';
+    if (ADMIN.filtro === 'draft')   return s.status === 'draft';
+    return true; // todas
+  });
+
+  var contEl = document.getElementById('admin-rooms-count');
+  if (contEl) contEl.textContent = filtradas.length + ' sala' + (filtradas.length !== 1 ? 's' : '');
+
+  if (!filtradas.length) {
+    var msg = ADMIN.filtro === 'ativas' ? 'Nenhuma sala aguardando jogadores.' :
+              ADMIN.filtro === 'draft'  ? 'Nenhum draft em andamento agora.' :
+              'Nenhuma sala encontrada.';
+    document.getElementById('admin-rooms-lista').innerHTML = '<div class="admin-empty">'+msg+'</div>';
     return;
   }
-  var html = '';
-  rooms.forEach(function(sala) {
-    var statusCls = 'status-' + (sala.status || 'lobby');
-    var statusLabel = sala.status === 'draft' ? 'Draft ativo' : sala.status === 'lobby' ? 'Aguardando' : sala.status;
-    var inativoStr = sala.inativoMin < 60 ? sala.inativoMin + ' min' : Math.floor(sala.inativoMin/60) + 'h' + (sala.inativoMin%60) + 'min';
-    var inativoClass = sala.inativoMin > 30 ? 'admin-inativo' : '';
-    var pickProgress = sala.draftRodadas > 0 ? Math.round(sala.draftPickAtual / (sala.draftRodadas * (sala.humanos + sala.bots)) * 100) : 0;
 
-    html += '<div class="admin-room-card">';
+  var html = '';
+  filtradas.forEach(function(sala) {
+    var isDraft   = sala.status === 'draft';
+    var isEnc     = sala.status === 'encerrada' || sala.status === 'expirada';
+    var cardCls   = isDraft ? 'card-draft' : isEnc ? 'card-enc' : 'card-lobby';
+    var statusCls = 'status-' + (sala.status || 'lobby');
+    var statusLbl = { draft:'Em draft', lobby:'No lobby', aguardando_inicio:'Aguardando início',
+                      encerrada:'Encerrada', expirada:'Expirada' }[sala.status] || sala.status;
+    var inativoStr = sala.inativoMin < 60
+      ? sala.inativoMin + ' min'
+      : Math.floor(sala.inativoMin/60) + 'h' + (sala.inativoMin % 60) + 'min';
+    var inativoClass = sala.inativoMin > 30 ? 'admin-inativo' : '';
+
+    html += '<div class="admin-room-card ' + cardCls + '">';
+
+    // Cabeçalho
     html += '<div class="admin-room-head">';
     html += '<div>';
-    html += '<div class="admin-room-id">'+(sala.isPriority ? '★ ' : '')+sala.roomId+'</div>';
-    html += '<div class="admin-room-nome">'+esc(sala.nomeSala)+'</div>';
+    html += '<div class="admin-room-id">' + (sala.isPriority ? '★ ' : '') + sala.roomId + '</div>';
+    html += '<div class="admin-room-nome">' + esc(sala.nomeSala) + '</div>';
     html += '</div>';
-    html += '<span class="admin-badge-status '+statusCls+'">'+statusLabel+'</span>';
+    html += '<span class="admin-badge-status ' + statusCls + '">' + statusLbl + '</span>';
     html += '</div>';
 
+    // Meta resumida
     html += '<div class="admin-room-meta">';
-    html += '<span>👥 '+sala.humanos+' jogador'+(sala.humanos!==1?'es':'')+'</span>';
-    html += '<span>🤖 '+sala.bots+' bots</span>';
-    if (sala.status === 'draft') html += '<span>📋 Pick '+sala.draftPickAtual+'/'+Math.round(sala.draftRodadas*(sala.humanos+sala.bots))+'</span>';
-    html += '<span class="'+inativoClass+'">⏱ Inativo há '+inativoStr+'</span>';
-    html += '<span style="color:var(--muted)">🕐 '+sala.criadoEm+'</span>';
+    html += '<span>👤 ' + sala.humanos + ' humano' + (sala.humanos !== 1 ? 's' : '') + '</span>';
+    html += '<span>🤖 ' + sala.bots + ' bots</span>';
+    html += '<span class="' + inativoClass + '">⏱ ' + inativoStr + ' inativo</span>';
+    html += '<span>🕐 Criada ' + sala.criadoEm + '</span>';
     html += '</div>';
 
-    if (sala.status === 'encerrada' || sala.status === 'expirada') {
-      html += '<div style="font-size:.72rem;color:var(--muted);font-style:italic">Sala encerrada</div>';
-    } else {
-      html += '<div class="admin-room-actions">';
-      html += '<button class="admin-btn admin-btn-danger" onclick="adminFecharSala(\''+sala.roomId+'\',\''+esc(sala.nomeSala)+'\')">FECHAR SALA</button>';
+    // Barra de progresso (só em draft)
+    if (isDraft && sala.totalPicks > 0) {
+      var pct = Math.min(100, Math.round((sala.picksFeitos / sala.totalPicks) * 100));
+      html += '<div class="admin-progress-label">';
+      html += '<span>Pick ' + sala.picksFeitos + ' / ' + sala.totalPicks + '</span>';
+      html += '<span>' + pct + '%</span>';
+      html += '</div>';
+      html += '<div class="admin-progress-wrap"><div class="admin-progress-bar" style="width:' + pct + '%"></div></div>';
+    }
+
+    // Quem está escolhendo agora
+    if (isDraft && sala.currentPicker) {
+      html += '<div class="admin-picker-now">▶ Escolhendo agora: ' + esc(sala.currentPicker) + '</div>';
+    }
+
+    // Participantes humanos
+    var humanos = (sala.participantes || []).filter(function(p){ return p.tipo === 'humano'; });
+    if (humanos.length) {
+      html += '<div class="admin-participants">';
+      humanos.forEach(function(p) {
+        html += '<span class="admin-part-tag">';
+        html += '<span class="admin-part-dot" style="background:' + esc(p.cor) + '"></span>';
+        html += esc(p.nomeClube) + ' · ' + esc(p.nome);
+        html += '</span>';
+      });
       html += '</div>';
     }
+
+    // Ações
+    if (!isEnc) {
+      html += '<div class="admin-room-actions">';
+      html += '<button class="admin-btn admin-btn-sec" onclick="adminRefreshSala(this,\'' + sala.roomId + '\')">↻ RELOAD</button>';
+      html += '<button class="admin-btn admin-btn-danger" onclick="adminFecharSala(\'' + sala.roomId + '\',\'' + esc(sala.nomeSala) + '\')">✕ FECHAR SALA</button>';
+      html += '</div>';
+    } else {
+      html += '<div style="font-size:.7rem;color:var(--muted);font-style:italic">Encerrada · ' + sala.ultimaAtividade + '</div>';
+    }
+
     html += '</div>';
   });
+
   document.getElementById('admin-rooms-lista').innerHTML = html;
 }
 
+function adminRefreshSala(btn, roomId) {
+  btn.textContent = '...'; btn.disabled = true;
+  get({ action:'adminGetRooms', adminPwd: ADMIN.pwd }, function(r) {
+    btn.textContent = '↻ RELOAD'; btn.disabled = false;
+    if (!r.success) { toast(r.error, 'erro'); return; }
+    ADMIN.rooms = r.rooms || [];
+    adminRenderSalas(ADMIN.rooms);
+    var el = document.getElementById('admin-last-update');
+    if (el) el.textContent = 'Atualizado: ' + new Date().toLocaleTimeString('pt-BR');
+  });
+}
+
 function adminFecharSala(roomId, nome) {
-  if (!confirm('Fechar a sala "'+nome+'" ('+roomId+')? Esta ação é irreversível.')) return;
+  if (!confirm('Fechar "' + nome + '" (' + roomId + ')?\nTodos os jogadores serão desconectados. Irreversível.')) return;
   post('adminCloseRoom', { adminPwd: ADMIN.pwd, roomId: roomId }, function(r) {
     if (!r.success) { alert('Erro: ' + r.error); return; }
     toast('Sala ' + roomId + ' encerrada.', 'ok');
@@ -2010,12 +2128,39 @@ function adminFecharSala(roomId, nome) {
 }
 
 function adminLimparExpiradas() {
-  if (!confirm('Encerrar todas as salas inativas há mais de '+60+' minutos?')) return;
+  if (!confirm('Encerrar todas as salas inativas há mais de 60 min?')) return;
   post('adminClearExpired', { adminPwd: ADMIN.pwd, minutos: 60 }, function(r) {
     if (!r.success) { alert('Erro: ' + r.error); return; }
-    toast(r.encerradas + ' sala(s) expirada(s) limpas.', 'ok');
+    toast(r.encerradas + ' sala(s) expirada(s) removidas.', 'ok');
     adminCarregar();
   });
+}
+
+function adminToggleAutoRefresh(chk) {
+  ADMIN.autoRefresh = chk.checked;
+  if (ADMIN.autoRefresh) {
+    ADMIN.autoIv = setInterval(function() {
+      get({ action:'adminGetRooms', adminPwd: ADMIN.pwd }, function(r) {
+        if (!r.success) return;
+        ADMIN.rooms = r.rooms || [];
+        var el = document.getElementById('admin-last-update');
+        if (el) el.textContent = 'Atualizado: ' + new Date().toLocaleTimeString('pt-BR');
+        adminRenderSalas(ADMIN.rooms);
+      });
+      get({ action:'adminGetStats', adminPwd: ADMIN.pwd }, function(r) {
+        if (r.success) adminRenderStats(r);
+      });
+    }, 15000);
+  } else {
+    _adminStopAutoRefresh();
+  }
+}
+
+function _adminStopAutoRefresh() {
+  if (ADMIN.autoIv) { clearInterval(ADMIN.autoIv); ADMIN.autoIv = null; }
+  ADMIN.autoRefresh = false;
+  var chk = document.getElementById('admin-auto-refresh-chk');
+  if (chk) chk.checked = false;
 }
 
 // Acesso direto via hash na URL (#admin)
@@ -2033,7 +2178,7 @@ function adminLimparExpiradas() {
 <section id="s-admin">
   <div class="admin-topo">
     <span class="admin-topo-logo">ERA UMA VEZ</span>
-    <span class="admin-topo-tag">Admin</span>
+    <span class="admin-topo-tag">Super Admin</span>
     <button class="admin-btn admin-btn-sec" onclick="adminLogout()" style="margin:0;padding:5px 12px;font-size:.65rem">SAIR</button>
   </div>
 
@@ -2041,7 +2186,7 @@ function adminLimparExpiradas() {
   <div id="admin-login-wrap">
     <div class="admin-login-wrap">
       <div class="admin-login-title">ACESSO RESTRITO</div>
-      <p class="admin-login-sub">Área exclusiva do administrador. Digite a senha para continuar.</p>
+      <p class="admin-login-sub">Painel exclusivo do administrador. Insira a senha para continuar.</p>
       <div class="field">
         <label>Senha de administrador</label>
         <input id="admin-pwd-input" type="password" placeholder="••••••••••"
@@ -2052,13 +2197,12 @@ function adminLimparExpiradas() {
     </div>
   </div>
 
-  <!-- DASHBOARD (oculto até login) -->
+  <!-- DASHBOARD -->
   <div id="admin-dashboard" class="dn">
     <div class="admin-body">
 
-      <!-- Stats -->
       <div class="admin-section-title" style="margin-bottom:12px">VISÃO GERAL</div>
-      <div class="admin-stats-grid" id="admin-stats-grid">
+      <div class="admin-stats-grid">
         <div class="admin-stat"><div class="admin-stat-n" id="ast-total">—</div><div class="admin-stat-l">Salas total</div></div>
         <div class="admin-stat"><div class="admin-stat-n" id="ast-ativas">—</div><div class="admin-stat-l">No lobby</div></div>
         <div class="admin-stat"><div class="admin-stat-n" id="ast-draft">—</div><div class="admin-stat-l">Em draft</div></div>
@@ -2067,6 +2211,54 @@ function adminLimparExpiradas() {
         <div class="admin-stat"><div class="admin-stat-n" id="ast-picks">—</div><div class="admin-stat-l">Picks feitos</div></div>
       </div>
 
-      <!-- Ações globais -->
-      <div style="display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap">
+      <!-- Controles -->
+      <div class="admin-refresh-row">
         <button class="admin-btn admin-btn-sec" onclick="adminCarregar()">↻ ATUALIZAR</button>
+        <button class="admin-btn admin-btn-warn" onclick="adminLimparExpiradas()">🗑 LIMPAR EXPIRADAS</button>
+        <label class="admin-refresh-toggle">
+          <input type="checkbox" id="admin-auto-refresh-chk" onchange="adminToggleAutoRefresh(this)">
+          Auto-refresh 15s
+        </label>
+        <span class="admin-last-update" id="admin-last-update"></span>
+      </div>
+
+      <!-- Salas -->
+      <div class="admin-section-title">
+        SALAS
+        <span id="admin-rooms-count" style="font-size:.75rem;font-weight:400;letter-spacing:0;color:var(--muted)"></span>
+      </div>
+
+      <!-- Filtros -->
+      <div class="admin-filter-tabs">
+        <button class="admin-filter-tab ativo" data-filtro="ativas"
+          onclick="adminSetFiltro('ativas')">No lobby</button>
+        <button class="admin-filter-tab" data-filtro="draft"
+          onclick="adminSetFiltro('draft')">Em draft</button>
+        <button class="admin-filter-tab" data-filtro="todas"
+          onclick="adminSetFiltro('todas')">Todas</button>
+      </div>
+
+      <div id="admin-rooms-lista">
+        <div class="admin-empty">Carregando...</div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+</body>
+</html>
+">Todas</button>
+      </div>
+
+      <!-- Lista de salas -->
+      <div id="admin-rooms-lista">
+        <div class="admin-empty">Carregando...</div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+</body>
+</html>
